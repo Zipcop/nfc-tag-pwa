@@ -112,13 +112,6 @@ async function writeNfcTag(url) {
   await ndef.write({ records: [{ recordType: "url", data: url }] });
 }
 
-/* Schreibt eine leere NDEF-Nachricht - der Tag löst danach beim Scannen
-   nichts mehr aus. Nicht rückgängig machbar. */
-async function eraseNfcTag() {
-  const ndef = new NDEFReader();
-  await ndef.write({ records: [] });
-}
-
 /* Wartet auf genau ein Scan-Ergebnis (ein Tag-Kontakt) und liefert das
    NDEFReadingEvent zurück. Über signal abbrechbar (z.B. "Abbrechen"-Button). */
 function scanNfcTagOnce(signal) {

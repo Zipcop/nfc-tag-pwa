@@ -119,15 +119,7 @@ function openCardMenu(tag, anchorBtn) {
     }
   });
 
-  const eraseBtn = document.createElement("button");
-  eraseBtn.className = "btn danger";
-  eraseBtn.textContent = "Tag physisch leeren";
-  eraseBtn.addEventListener("click", () => {
-    closeAllCardMenus();
-    openEraseModal(tag);
-  });
-
-  panel.append(editBtn, rewriteBtn, removeBtn, eraseBtn);
+  panel.append(editBtn, rewriteBtn, removeBtn);
 
   const rect = anchorBtn.getBoundingClientRect();
   panel.style.top = `${rect.bottom + 6}px`;

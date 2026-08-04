@@ -165,12 +165,6 @@ button:disabled {
   border: 1.5px solid var(--line);
 }
 
-.btn-danger {
-  background: transparent;
-  color: var(--danger);
-  border: 1.5px solid var(--danger);
-}
-
 .btn-accent {
   background: var(--accent);
   color: #F6F1E7;
@@ -338,10 +332,6 @@ button:disabled {
 .card-menu-panel button:active {
   transform: none;
   background: rgba(255, 255, 255, 0.06);
-}
-
-.card-menu-panel button.danger {
-  color: var(--danger);
 }
 
 /* ---------------- Empty state ---------------- */
@@ -661,6 +651,12 @@ textarea {
 }
 
 /* ---------------- Aktions-Ansicht ---------------- */
+
+.action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
 .action-card {
   text-align: center;

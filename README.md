@@ -37,21 +37,20 @@ Dafür sind in der Regel **zwei kurze Kontakte** mit dem Handy nötig – einmal
 
 ## Einen Tag benutzen
 
-Handy (egal ob mit oder ohne diese App installiert) einfach an den beschriebenen Tag halten:
+Handy (egal ob mit oder ohne diese App installiert) einfach an den beschriebenen Tag halten. Die sich öffnende Seite hat oben immer einen Link „← Zur Übersicht" zurück zum Dashboard.
 
-- **Timer-Tag**: Die Uhr-App startet automatisch einen Timer.
+- **Timer-Tag**: Ein großer Button „Timer in der Uhr-App starten" übergibt den Timer an die native Uhr-App. Falls das Gerät das nicht unterstützt, läuft direkt darunter sichtbar ein Countdown in der Seite selbst mit.
 - **Kontakt-Tag**: Es öffnet sich eine Seite mit Name, Nachricht und Buttons zum Anrufen/WhatsApp-Schreiben.
 
 Das funktioniert auch auf fremden Handys und sogar auf iPhones – die brauchen dafür kein Web-NFC, das Betriebssystem öffnet einfach die im Tag gespeicherte Adresse im Browser.
 
-## Einen Tag bearbeiten / neu beschreiben / entfernen / leeren
+## Einen Tag bearbeiten / neu beschreiben / entfernen
 
-Im Dashboard hat jeder Eintrag ein ⋮-Menü mit vier Aktionen:
+Im Dashboard hat jeder Eintrag ein ⋮-Menü mit drei Aktionen:
 
 - **Bearbeiten**: Angaben ändern, ohne den physischen Tag anzufassen – nur ein Formular, kein NFC-Kontakt nötig.
 - **Erneut auf Tag schreiben**: Die gespeicherten Angaben auf einen physischen Tag übertragen – denselben oder einen anderen. Liest den Tag vorher kurz aus und zeigt vorhandenen Inhalt an, bevor überschrieben wird.
-- **Aus der Liste entfernen**: Entfernt den Eintrag nur aus der App-Liste auf diesem Handy. Der physische Tag bleibt unverändert und löst beim Scannen weiterhin die bisherige Aktion aus.
-- **Tag physisch leeren**: Schreibt eine leere Nachricht auf den Tag, sodass er künftig nichts mehr auslöst. Das kann **nicht rückgängig gemacht werden** – du musst das vorher extra bestätigen und den Tag ans Handy halten.
+- **Aus der Liste entfernen**: Entfernt den Eintrag nur aus der App-Liste auf diesem Handy. Der physische Tag bleibt unverändert und löst beim Scannen weiterhin die bisherige Aktion aus. (Um einen Tag stattdessen neu zu belegen, einfach „Erneut auf Tag schreiben" mit einer anderen Konfiguration nutzen – Überschreiben reicht.)
 
 ## Tag-Infos anzeigen
 
@@ -67,7 +66,7 @@ Wichtig: Web-NFC liefert nur diese Informationen – **nicht** den genauen Chip-
 
 - Die Liste deiner Tags wird nur lokal auf **diesem** Handy gespeichert (kein Konto, keine Synchronisation zwischen Geräten).
 - Beschreiben von Tags funktioniert nur auf Android mit Chrome/Edge/Samsung Internet. Öffnest du die App am PC oder auf dem iPhone, erscheint stattdessen ein Hinweis.
-- Beim Timer versucht die App zuerst, den Timer direkt an die native Uhr-App zu übergeben (läuft dann zuverlässig weiter, auch wenn der Tab geschlossen wird). Klappt das auf einem Gerät ausnahmsweise nicht, springt automatisch ein Countdown direkt in der Seite ein – dafür muss die Seite dann aber geöffnet bleiben.
+- Beim Timer übergibt der Button „Timer in der Uhr-App starten" den Timer an die native Uhr-App (läuft dann zuverlässig weiter, auch wenn der Tab geschlossen wird). Es gibt keinen automatischen Redirect beim Laden mehr, da Chrome das teils stillschweigend blockiert hat – der Tap auf den Button ist eine echte Nutzer-Geste und funktioniert zuverlässig. Der In-Page-Countdown darunter läuft als Alternative direkt mit, dafür muss die Seite dann aber geöffnet bleiben.
 
 ## Für Entwickler: lokal testen
 

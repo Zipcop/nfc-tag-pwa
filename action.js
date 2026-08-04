@@ -4,8 +4,7 @@ let countdownInterval = null;
 
 function initActionView(params) {
   document.getElementById("dashboard-view").hidden = true;
-  const view = document.getElementById("action-view");
-  view.hidden = false;
+  document.getElementById("action-view").hidden = false;
 
   const type = params.get("type");
   if (type === "timer") {
@@ -13,7 +12,8 @@ function initActionView(params) {
   } else if (type === "contact") {
     initContactAction(params);
   } else {
-    view.innerHTML = `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Unbekannter Tag-Typ.</span></div>`;
+    document.getElementById("action-content").innerHTML =
+      `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Unbekannter Tag-Typ.</span></div>`;
   }
 }
 
@@ -33,63 +33,42 @@ function buildTimerIntentUrl(label, seconds) {
 function initTimerAction(params) {
   const minutes = parseInt(params.get("min"), 10);
   const label = params.get("label") || "Timer";
-  const view = document.getElementById("action-view");
+  const content = document.getElementById("action-content");
 
   if (!Number.isFinite(minutes) || minutes <= 0) {
-    view.innerHTML = `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Dieser Tag enthält keine gültige Timer-Dauer.</span></div>`;
+    content.innerHTML = `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Dieser Tag enthält keine gültige Timer-Dauer.</span></div>`;
     return;
   }
 
   const seconds = minutes * 60;
   const intentUrl = buildTimerIntentUrl(label, seconds);
-
-  // Der Redirect muss die allererste Aktion sein - kein DOM-Update, kein
-  // await/setTimeout davor. Sonst wertet Chrome ihn nicht mehr als an die
-  // Nutzer-Geste (Tap auf die Scan-Benachrichtigung) gekoppelt und blockiert
-  // den App-Aufruf stillschweigend.
-  window.location.href = intentUrl;
-
-  view.innerHTML = `
-    <div class="sticker-card type-timer action-card">
-      <span class="action-icon">${ICONS.clock}</span>
-      <h1>${escapeForDisplay(label)}</h1>
-      <p>Timer wird gestartet…</p>
-      <button type="button" id="manual-timer-btn" class="btn btn-primary btn-block">
-        <span class="icon">${ICONS.clock}</span>Timer jetzt starten
-      </button>
-      <p class="field-hint">Falls sich die Uhr-App nicht automatisch öffnet, tippe oben auf den Button.</p>
-    </div>
-  `;
-  document.getElementById("manual-timer-btn").addEventListener("click", () => {
-    window.location.href = intentUrl;
-  });
-
-  // Falls der Intent nicht greift (z.B. anderes Gerät/Browser), bleibt die
-  // Seite sichtbar - dann auf den In-Page-Countdown zurückfallen.
-  setTimeout(() => {
-    if (document.visibilityState === "visible") {
-      startFallbackCountdown(seconds, label);
-    }
-  }, 1500);
-}
-
-function startFallbackCountdown(seconds, label) {
-  const view = document.getElementById("action-view");
-  const endTime = Date.now() + seconds * 1000;
   const notifySupported = "Notification" in window;
 
-  view.innerHTML = `
-    <div class="banner banner-warning">
-      <span class="icon">${ICONS.warning}</span>
-      <span>Der native Timer konnte nicht automatisch gestartet werden. Countdown läuft stattdessen hier in der Seite.</span>
-    </div>
-    <div class="sticker-card type-timer action-card">
-      <p class="timer-label">${escapeForDisplay(label)}</p>
-      <div class="countdown" id="countdown-display">--:--</div>
-      ${notifySupported ? `<button id="notify-permission-btn" class="btn btn-accent-outline"><span class="icon">${ICONS.bell}</span>Benachrichtigung erlauben</button>` : ""}
-      <p class="field-hint">Für einen zuverlässigen Alarm bitte diesen Tab bzw. die App offen lassen – im Hintergrund kann das Handy den Timer pausieren.</p>
+  content.innerHTML = `
+    <div class="action-stack">
+      <div class="sticker-card type-timer action-card">
+        <span class="action-icon">${ICONS.clock}</span>
+        <h1>${escapeForDisplay(label)}</h1>
+        <button type="button" id="start-timer-btn" class="btn btn-primary btn-block">
+          <span class="icon">${ICONS.clock}</span>Timer in der Uhr-App starten
+        </button>
+        <p class="field-hint">Falls sich nichts öffnet, ist auf diesem Gerät keine Uhr-App mit Timer-Funktion verfügbar.</p>
+      </div>
+      <div class="sticker-card type-timer action-card">
+        <p class="timer-label">Alternativ: Countdown direkt hier in der Seite</p>
+        <div class="countdown" id="countdown-display">--:--</div>
+        ${notifySupported ? `<button type="button" id="notify-permission-btn" class="btn btn-accent-outline"><span class="icon">${ICONS.bell}</span>Benachrichtigung erlauben</button>` : ""}
+        <p class="field-hint">Dafür bitte diesen Tab bzw. die App offen lassen – im Hintergrund kann das Handy den Countdown pausieren.</p>
+      </div>
     </div>
   `;
+
+  // Der Intent wird ausschließlich über den Klick auf diesen Button ausgelöst -
+  // ein echter Tap ist immer eine gültige Nutzer-Geste. Kein automatischer
+  // Redirect beim Laden mehr (wurde von Chrome teils stillschweigend blockiert).
+  document.getElementById("start-timer-btn").addEventListener("click", () => {
+    window.location.href = intentUrl;
+  });
 
   if (notifySupported && Notification.permission === "default") {
     const btn = document.getElementById("notify-permission-btn");
@@ -102,6 +81,11 @@ function startFallbackCountdown(seconds, label) {
     document.getElementById("notify-permission-btn")?.remove();
   }
 
+  startCountdown(seconds, label);
+}
+
+function startCountdown(seconds, label) {
+  const endTime = Date.now() + seconds * 1000;
   const display = document.getElementById("countdown-display");
 
   function tick() {
@@ -130,11 +114,11 @@ function onTimerFinished(label) {
   if ("Notification" in window && Notification.permission === "granted") {
     new Notification("Timer abgelaufen", { body: label });
   }
-  const view = document.getElementById("action-view");
+  const content = document.getElementById("action-content");
   const banner = document.createElement("div");
   banner.className = "banner banner-success";
   banner.innerHTML = `<span class="icon">${ICONS.bell}</span><span>Zeit abgelaufen!</span>`;
-  view.prepend(banner);
+  content.prepend(banner);
 }
 
 function playBeeps() {
@@ -166,8 +150,7 @@ function initContactAction(params) {
   const notify = params.get("notify") === "1";
   const topic = params.get("topic") || "";
 
-  const view = document.getElementById("action-view");
-  view.innerHTML = `
+  document.getElementById("action-content").innerHTML = `
     <div class="sticker-card type-contact action-card">
       <span class="action-icon">${ICONS.contact}</span>
       <div class="contact-name">${escapeForDisplay(name)}</div>
