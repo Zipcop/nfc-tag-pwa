@@ -8,7 +8,9 @@
 
 **Auf einem Android-Emulator (API 34, Pixel 6, keine NFC-Hardware) erfolgreich verifiziert:** PIN-Lock/Kindermodus, Dashboard, Tag-Infos-Fehlerbehandlung (sauberer "NFC hardware not available"-Hinweis statt Absturz - hat einen echten Bug in `native.js` aufgedeckt und behoben, `CapacitorNfc.addListener().then` war zur Laufzeit kaputt), Push-Berechtigungsdialog, FCM-Token-Registrierung beim Worker, und **echte FCM-Zustellung als System-Benachrichtigung** bei App im Hintergrund - der komplette Worker-Pfad (RS256-JWT → Google-OAuth2 → FCM HTTP v1) funktioniert nachweislich Ende-zu-Ende. Web Push und FCM laufen dabei nachweislich parallel (ein `/notify`-Aufruf beliefert beide gleichzeitig erfolgreich).
 
-**Noch offen:** Test auf echtem Gerät (Samsung Galaxy A55) für die native NFC-Funktion (Scannen/Schreiben - im Emulator mangels NFC-Hardware nicht testbar), App-Signierung für ein Release-APK, App Links (`assetlinks.json`).
+**App Links fertig eingerichtet und verifiziert:** separates Root-Domain-Repo [zipcop.github.io](https://github.com/Zipcop/zipcop.github.io) hostet `.well-known/assetlinks.json` (Achtung: `.nojekyll` nötig, sonst ignoriert GitHub Pages versteckte Ordner wie `.well-known`). `AndroidManifest.xml` hat einen zweiten Intent-Filter mit `android:autoVerify="true"` für `https://zipcop.github.io/nfc-tag-pwa/*`, `MainActivity` reicht die Query-Parameter eingehender Links an die im WebView laufende `index.html` weiter. Auf dem Emulator verifiziert: `pm get-app-links` zeigt "verified", ein simulierter Tag-Scan öffnet direkt die App statt des Browsers. Fingerprint aktuell vom Debug-Keystore (`~/.android/debug.keystore`) - muss bei einem signierten Release-Build durch den Release-Fingerprint ersetzt/ergänzt werden.
+
+**Noch offen:** Test auf echtem Gerät (Samsung Galaxy A55) für die native NFC-Funktion (Scannen/Schreiben - im Emulator mangels NFC-Hardware nicht testbar) sowie App Links am echten Gerät, App-Signierung für ein Release-APK (dafür dann auch den Release-Fingerprint zu `assetlinks.json` hinzufügen).
 
 ## Grundprinzip
 
