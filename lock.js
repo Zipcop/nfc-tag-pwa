@@ -207,6 +207,7 @@ function unlockDashboard() {
   showScreen("unlocked");
   initDashboard();
   initPushUI();
+  renderRunningTimers();
   resetAutoLockTimer();
   attachActivityListeners();
 }

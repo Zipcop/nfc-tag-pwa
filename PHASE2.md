@@ -4,6 +4,8 @@
 
 **Status:** Phase 2 ist inzwischen **empfohlen statt rein optional**, wenn ein zuverlässiger UND abbrechbarer Timer gewünscht ist. Phase 1 (PWA) hat sich als strukturell unfähig erwiesen, einen nativen Android-Alarm zuverlässig auszulösen (weder automatisch noch per Klick auf einen `intent://`-Link – Chrome blockiert das zu inkonsistent) und bietet deshalb bewusst nur einen ehrlichen In-Page-Countdown mit Abbrechen-Button an. Ein Alarm, der auch bei geschlossener App zuverlässig auslöst, braucht die native Capacitor-Version.
 
+**Kickoff-Fortschritt (Stand 2026-08-04):** Grundgerüst steht und ist lokal als Debug-APK baubar (`android/app/build/outputs/apk/debug/app-debug.apk`) - Capacitor-Projekt (App-ID `com.nfcaktionen.app`), Android-Plattform, alle drei Plugins (`@capacitor/local-notifications`, `@capacitor/push-notifications`, `@capgo/capacitor-nfc`), Firebase-App im bestehenden Wetter-App-Projekt registriert (`google-services.json` liegt unter `android/app/`), `native.js` mit Plattform-Verzweigung für Timer/Push/NFC, Worker-`/notify` unterstützt bereits parallel Web Push und FCM. **Noch offen:** `FIREBASE_SERVICE_ACCOUNT`-Secret im Worker setzen (siehe `nfc-push-worker/README.md`), Test auf echtem Gerät/Emulator, App-Signierung für ein Release-APK, App Links (`assetlinks.json`).
+
 ## Grundprinzip
 
 Capacitor übernimmt den kompletten HTML/CSS/JS-Code aus Phase 1 praktisch unverändert und packt ihn in eine native Android-App. Über eine JavaScript-Brücke bekommt der Code zusätzlich Zugriff auf native Funktionen (echte System-Alarme, natives NFC).
@@ -53,6 +55,7 @@ Phase 1 nutzt Web Push über den separaten [nfc-push-worker](../nfc-push-worker)
   - denselben Service-Account-Schlüssel des bestehenden Projekts für den Worker weiterverwenden (kein zweiter Schlüssel nötig).
 - Beim App-Start `PushNotifications.register()` aufrufen und das resultierende FCM-Token an den bestehenden Worker-Endpunkt `/subscribe` schicken - gleiche Struktur wie beim Web-Push-Ansatz aus Phase 1 (dort wird die `PushSubscription` gespeichert, hier einfach das Token anstelle davon; die KV-Speicherung im Worker bleibt unverändert).
 - Im Worker: `/notify` so anpassen, dass er bei einem gespeicherten FCM-Token statt `buildPushPayload()`/Web Push die Firebase-Admin-API (HTTP v1, mit dem Service-Account-Schlüssel signiert) aufruft, um die Nachricht zuzustellen. Die Unterscheidung Web-Push-Subscription vs. FCM-Token kann z.B. an der Form des gespeicherten Objekts festgemacht werden (`endpoint`+`keys` vs. reiner Token-String).
+- **Beide Wege parallel unterstützen, nicht ersetzen:** `/subscribe` speichert je nach eingehender Form entweder eine Web-Push-Subscription (Phase-1-PWA) oder ein FCM-Token (Phase-2-App) - am saubersten unter unterschiedlichen KV-Keys (z.B. `subscription:webpush` und `subscription:fcm`), damit `/notify` bei einer Benachrichtigung optional an beide zustellt und die Phase-1-PWA-Nutzung weiterläuft, auch wenn parallel die native App installiert ist.
 
 ## App Links (damit das eigene Handy Tags direkt in der App öffnet)
 

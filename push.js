@@ -12,6 +12,9 @@ const PUSH_SUBSCRIBED_KEY = "nfcPushSubscribed";
 let pushListenerAttached = false;
 
 function isPushSupported() {
+  if (isNativePlatform()) {
+    return true;
+  }
   return "serviceWorker" in navigator && "PushManager" in window;
 }
 
@@ -53,17 +56,21 @@ async function handlePushSubscribeClick() {
   btn.textContent = "Wird eingerichtet…";
 
   try {
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-    });
+    if (isNativePlatform()) {
+      await registerNativePush();
+    } else {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
 
-    await fetch(`${PUSH_WORKER_URL}/subscribe`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Api-Key": PUSH_API_KEY },
-      body: JSON.stringify(subscription),
-    });
+      await fetch(`${PUSH_WORKER_URL}/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Api-Key": PUSH_API_KEY },
+        body: JSON.stringify(subscription),
+      });
+    }
 
     localStorage.setItem(PUSH_SUBSCRIBED_KEY, "1");
     btn.hidden = true;

@@ -254,6 +254,21 @@ button:disabled {
   margin: 20px 0;
 }
 
+/* Nur relevant in der nativen App (Phase 2) - auf der PWA bleibt der
+   Bereich leer/versteckt, da nie ein LocalNotifications-Timer läuft. */
+#running-timers h2 {
+  margin-bottom: 12px;
+  font-size: 1.05rem;
+}
+
+#running-timers .tag-card-head .btn {
+  width: auto;
+  flex-shrink: 0;
+  min-height: 0;
+  padding: 10px 16px;
+  font-size: 0.85rem;
+}
+
 .tag-card-head {
   display: flex;
   align-items: center;

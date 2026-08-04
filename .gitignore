@@ -1,0 +1,12 @@
+node_modules/
+www/
+
+# Android/Gradle-Build-Artefakte (generiert, nicht Quellcode)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/captures/
+android/*.iml
+android/app/*.iml

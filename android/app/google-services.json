@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "942944293871",
+    "project_id": "moto-wetter",
+    "storage_bucket": "moto-wetter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:942944293871:android:d97c845380b78bf43e5c1a",
+        "android_client_info": {
+          "package_name": "com.nfcaktionen.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "942944293871-ij6i5ori0gids728s9ko36nq0emmlh63.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGuI9ZLlQH0zSq8SvSfoE633l2YRqo64M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "942944293871-ij6i5ori0gids728s9ko36nq0emmlh63.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

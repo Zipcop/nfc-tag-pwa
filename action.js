@@ -32,7 +32,7 @@ function initActionView(params) {
    Ein zuverlässiger, auch bei geschlossener App laufender Alarm braucht
    die native Capacitor-Version (Phase 2, siehe PHASE2.md). */
 
-function initTimerAction(params) {
+async function initTimerAction(params) {
   const minutes = parseInt(params.get("min"), 10);
   const label = params.get("label") || "Timer";
   const content = document.getElementById("action-content");
@@ -43,6 +43,12 @@ function initTimerAction(params) {
   }
 
   const seconds = minutes * 60;
+
+  if (isNativePlatform()) {
+    await initNativeTimerAction(seconds, label, content);
+    return;
+  }
+
   const notifySupported = "Notification" in window;
 
   content.innerHTML = `
@@ -73,6 +79,40 @@ function initTimerAction(params) {
   });
 
   startCountdown(seconds, label);
+}
+
+/* Native Capacitor-App: zuverlässiger System-Alarm über LocalNotifications
+   statt In-Page-Countdown - läuft auch bei geschlossener App weiter und ist
+   im Dashboard unter "Laufende Timer" abbrechbar (siehe native.js). */
+async function initNativeTimerAction(seconds, label, content) {
+  content.innerHTML = `
+    <div class="sticker-card type-timer action-card">
+      <span class="action-icon">${ICONS.clock}</span>
+      <p class="timer-label">${escapeForDisplay(label)}</p>
+      <p>Timer wird gestellt…</p>
+    </div>
+  `;
+
+  try {
+    await startNativeTimer(seconds, label);
+    content.innerHTML = `
+      <div class="sticker-card type-timer action-card">
+        <span class="action-icon">${ICONS.clock}</span>
+        <h1>${escapeForDisplay(label)}</h1>
+        <div class="banner banner-success">
+          <span class="icon">${ICONS.check}</span>
+          <span>Timer gestellt - läuft auch weiter, wenn du die App schließt.</span>
+        </div>
+        <a href="index.html" class="btn btn-primary btn-block">Zur Übersicht</a>
+        <p class="field-hint">Im Dashboard unter „Laufende Timer" jederzeit abbrechbar.</p>
+      </div>
+    `;
+  } catch (err) {
+    content.innerHTML = `
+      <div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Timer konnte nicht gestellt werden: ${escapeForDisplay(err.message || String(err))}</span></div>
+      <a href="index.html" class="btn btn-secondary btn-block">Zur Übersicht</a>
+    `;
+  }
 }
 
 function startCountdown(seconds, label) {

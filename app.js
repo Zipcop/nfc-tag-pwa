@@ -179,11 +179,22 @@ async function sendNotification(title, body) {
    NFC-Schreiben
    ========================================================= */
 
+/* Diese drei Funktionen sind der einzige Berührungspunkt zwischen den
+   Aufrufern (setup.js, nfc-tools.js) und der Plattform - sie verzweigen
+   intern zwischen Web NFC (Phase 1) und dem nativen Plugin (Phase 2,
+   native.js), sodass der Rest der App plattformunabhängig bleibt. */
+
 function isWebNfcSupported() {
+  if (isNativePlatform()) {
+    return true;
+  }
   return "NDEFReader" in window;
 }
 
 async function writeNfcTag(url) {
+  if (isNativePlatform()) {
+    return nativeWriteTag(url);
+  }
   const ndef = new NDEFReader();
   await ndef.write({ records: [{ recordType: "url", data: url }] });
 }
@@ -191,6 +202,9 @@ async function writeNfcTag(url) {
 /* Wartet auf genau ein Scan-Ergebnis (ein Tag-Kontakt) und liefert das
    NDEFReadingEvent zurück. Über signal abbrechbar (z.B. "Abbrechen"-Button). */
 function scanNfcTagOnce(signal) {
+  if (isNativePlatform()) {
+    return nativeScanTagOnce(signal);
+  }
   return new Promise((resolve, reject) => {
     const ndef = new NDEFReader();
 

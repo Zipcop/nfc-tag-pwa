@@ -1,0 +1,29 @@
+{
+  "name": "nfc-tag-pwa",
+  "version": "1.0.0",
+  "description": "Eine kleine Progressive Web App, mit der du NFC-Tags beschreiben kannst. Hältst du danach das Handy an den Tag (deins oder ein fremdes), passiert automatisch eine vorher festgelegte Aktion – z.B. startet ein Timer oder es wird eine Kontaktkarte mit Anruf-/WhatsApp-Button angezeigt.",
+  "scripts": {
+    "sync-www": "node scripts/sync-www.js",
+    "cap:sync": "npm run sync-www && npx cap sync"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zipcop/nfc-tag-pwa.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Zipcop/nfc-tag-pwa/issues"
+  },
+  "homepage": "https://github.com/Zipcop/nfc-tag-pwa#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/local-notifications": "^8.2.1",
+    "@capacitor/push-notifications": "^8.1.2",
+    "@capgo/capacitor-nfc": "^8.2.2"
+  }
+}
