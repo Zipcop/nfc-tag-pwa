@@ -4,6 +4,17 @@ Eine kleine Progressive Web App, mit der du NFC-Tags beschreiben kannst. Hältst
 
 Läuft komplett im Browser, ohne eigenen Server – gehostet über GitHub Pages.
 
+## Kindermodus / PIN-Schutz
+
+Die App öffnet sich standardmäßig **gesperrt**: keine Tag-Liste, keine Buttons – nur ein großes Symbol mit „Halte einen Tag ans Handy" und oben ein kleines Schloss-Symbol. So kann ein Kind die App öffnen und trotzdem nichts an der Verwaltung verändern.
+
+- **Beim allerersten Öffnen** fragt die App einmalig nach einem selbstgewählten 4-stelligen PIN (zweimal eingeben zur Bestätigung). Der PIN wird nicht im Klartext gespeichert, sondern nur als SHA-256-Hash in `localStorage` – das ist **kein Schutz gegen technisch versierte Erwachsene**, reicht aber, um Kinder von der Verwaltung fernzuhalten.
+- Tippe auf das Schloss-Symbol und gib den PIN über das Zahlenpad ein, um die Verwaltung (Tag-Liste, Bearbeiten, Neuen Tag einrichten, …) freizuschalten.
+- Nach 5 Minuten ohne Aktivität oder wenn die App komplett geschlossen wird, sperrt sie sich automatisch wieder.
+- **PIN vergessen?** Es gibt keine „PIN vergessen"-Mail, da die App kein Backend/Konto hat. Einzige Möglichkeit: in Chrome unter Website-Einstellungen die Daten dieser Seite löschen. Das setzt den PIN zurück, löscht dabei aber auch die lokal gespeicherte Liste der Tag-Konfigurationen auf diesem Handy. **Die physischen Tags selbst funktionieren beim Scannen weiterhin ganz normal** – nur die Übersicht/Bearbeitungsmöglichkeit in der App geht verloren.
+
+Wichtig: Dieser Schutz betrifft **nur** die Verwaltung. Scannt ein Kind einen fertigen Tag, passiert die hinterlegte Aktion (Timer, Kontakt, Route, Checkliste, Check-in) sofort und ganz normal – ohne PIN, ohne die App überhaupt zu öffnen.
+
 ## Voraussetzungen
 
 - Ein Android-Handy mit NFC (zum **Beschreiben** von Tags)
@@ -24,7 +35,7 @@ Einstellungen → Verbindungen → NFC und kontaktloses Bezahlen → NFC einscha
 
 Dafür sind in der Regel **zwei kurze Kontakte** mit dem Handy nötig – einmal zum Erkennen, einmal zum Speichern:
 
-1. Öffne die Web-App in Chrome auf deinem Handy.
+1. Öffne die Web-App in Chrome auf deinem Handy und entsperre die Verwaltung mit deinem PIN (siehe oben).
 2. Tippe auf **„+ Neuen Tag einrichten"**.
 3. Halte den NFC-Tag ans Handy, sobald „Tag jetzt ans Handy halten" erscheint (**erster Kontakt**). Die App liest ihn kurz aus:
    - Ist er leer, geht es direkt weiter.

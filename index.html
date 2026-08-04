@@ -14,31 +14,50 @@
 <div class="app">
 
   <div id="dashboard-view">
-    <header class="page-header">
-      <div class="brand-row">
-        <span class="brand-mark" data-icon="logo"></span>
-        <h1>NFC Aktionen</h1>
+
+    <!-- Gesperrter Zustand (Standard): keine Tag-Liste, nur Schloss + neutraler Hinweis. -->
+    <div id="locked-screen">
+      <button type="button" id="unlock-btn" class="lock-btn" aria-label="Verwaltung entsperren">
+        <span class="icon" data-icon="lock"></span>
+      </button>
+      <div class="locked-hero">
+        <span class="icon" data-icon="ripple"></span>
+        <p>Halte einen Tag ans Handy</p>
       </div>
-      <p>Deine eingerichteten Tags auf diesem Handy.</p>
-    </header>
-
-    <a href="setup.html" class="btn btn-primary">
-      <span class="icon" data-icon="plus"></span>
-      Neuen Tag einrichten
-    </a>
-
-    <button type="button" id="tag-info-btn" class="btn btn-outline btn-block">
-      <span class="icon" data-icon="info"></span>
-      Tag-Infos anzeigen
-    </button>
-
-    <div id="tag-list" class="tag-list"></div>
-
-    <div id="empty-state" class="empty-state" hidden>
-      <span class="ripple-icon" data-icon="ripple"></span>
-      <h2>Hier entstehen deine Tags</h2>
-      <p>Richte deinen ersten Tag ein und leg ihn direkt neben das Handy, um ihn zu beschreiben.</p>
     </div>
+
+    <!-- PIN-Eingabe/-Einrichtung: Inhalt wird dynamisch von lock.js befüllt. -->
+    <div id="pin-screen" hidden></div>
+
+    <!-- Entsperrter Zustand: volles Verwaltungs-Dashboard. -->
+    <div id="unlocked-dashboard" hidden>
+      <header class="page-header">
+        <div class="brand-row">
+          <span class="brand-mark" data-icon="logo"></span>
+          <h1>NFC Aktionen</h1>
+        </div>
+        <p>Deine eingerichteten Tags auf diesem Handy.</p>
+      </header>
+
+      <a href="setup.html" class="btn btn-primary">
+        <span class="icon" data-icon="plus"></span>
+        Neuen Tag einrichten
+      </a>
+
+      <button type="button" id="tag-info-btn" class="btn btn-outline btn-block">
+        <span class="icon" data-icon="info"></span>
+        Tag-Infos anzeigen
+      </button>
+
+      <div id="tag-list" class="tag-list"></div>
+
+      <div id="empty-state" class="empty-state" hidden>
+        <span class="ripple-icon" data-icon="ripple"></span>
+        <h2>Hier entstehen deine Tags</h2>
+        <p>Richte deinen ersten Tag ein und leg ihn direkt neben das Handy, um ihn zu beschreiben.</p>
+      </div>
+    </div>
+
   </div>
 
   <div id="action-view" hidden>
@@ -60,6 +79,7 @@
 <script src="dashboard.js"></script>
 <script src="action.js"></script>
 <script src="nfc-tools.js"></script>
+<script src="lock.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     hydrateIcons();
@@ -67,8 +87,8 @@
     if (params.has("type")) {
       initActionView(params);
     } else {
-      initDashboard();
       document.getElementById("tag-info-btn").addEventListener("click", openTagInfoModal);
+      initLockGate();
     }
     registerServiceWorker();
   });

@@ -54,6 +54,12 @@ const ICONS = {
 
   checklist:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5l1.4 1.4L8.5 5.3"/><path d="M11.5 6.5h8"/><path d="M4.5 12.5l1.4 1.4 2.6-2.6"/><path d="M11.5 12.5h8"/><path d="M4.5 18.5l1.4 1.4 2.6-2.6"/><path d="M11.5 18.5h8"/></svg>',
+
+  lock:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+
+  backspace:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-6-6 6-6z"/><path d="M13 10l4 4M17 10l-4 4"/></svg>',
 };
 
 /* Füllt alle Elemente mit [data-icon="name"] mit dem passenden SVG.

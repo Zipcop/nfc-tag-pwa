@@ -2,12 +2,18 @@
 
 let floatingMenuPanel = null;
 let floatingMenuTagId = null;
+let dashboardListenersAttached = false;
 
+// initDashboard() kann pro Seitenaufruf mehrfach laufen (Sperren/Entsperren
+// im Kindermodus) - die globalen Listener aber nur einmal anhängen.
 function initDashboard() {
   renderDashboard();
-  document.addEventListener("click", closeAllCardMenus);
-  window.addEventListener("scroll", closeAllCardMenus, true);
-  window.addEventListener("resize", closeAllCardMenus);
+  if (!dashboardListenersAttached) {
+    document.addEventListener("click", closeAllCardMenus);
+    window.addEventListener("scroll", closeAllCardMenus, true);
+    window.addEventListener("resize", closeAllCardMenus);
+    dashboardListenersAttached = true;
+  }
 }
 
 function renderDashboard() {

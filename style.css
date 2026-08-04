@@ -388,6 +388,105 @@ button:disabled {
   font-size: 0.92rem;
 }
 
+/* ---------------- Kindermodus / PIN-Schutz ---------------- */
+
+.lock-btn {
+  width: 40px;
+  height: 40px;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--fog);
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+}
+
+.lock-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.lock-btn:active {
+  transform: none;
+}
+
+.locked-hero {
+  text-align: center;
+  padding: 70px 20px;
+}
+
+.locked-hero .icon {
+  width: 56px;
+  height: 56px;
+  color: var(--amber);
+  margin: 0 auto 18px;
+}
+
+.locked-hero p {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 500;
+  font-size: 1.1rem;
+  color: #F1ECE0;
+}
+
+.pin-card {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.pin-card p {
+  color: var(--ink-dim);
+}
+
+.pin-error {
+  color: var(--danger) !important;
+  font-weight: 600;
+}
+
+.pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.pin-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(33, 29, 24, 0.25);
+  background: transparent;
+}
+
+.pin-dot.filled {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.pin-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  max-width: 260px;
+  margin: 0 auto 16px;
+}
+
+.pin-key {
+  width: auto;
+  min-height: 56px;
+  background: #FFFFFF;
+  color: var(--ink);
+  border: 1.5px solid rgba(33, 29, 24, 0.12);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.pin-key-backspace .icon {
+  width: 18px;
+  height: 18px;
+}
+
 /* ---------------- Surface-Card (Formular, Banner) ---------------- */
 
 .surface-card {
