@@ -22,6 +22,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Eigenes URL-Schema statt https://-App-Links: braucht keine
+                 Domain-Verifizierung, öffnet die App zuverlässig. Trade-off:
+                 nur Tags, die aus dieser App heraus geschrieben wurden,
+                 funktionieren so - kein Browser-Fallback auf fremden Handys
+                 (siehe app.js: buildTagUrl()). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="nfcaktionen" />
+            </intent-filter>
+
         </activity>
 
         <provider

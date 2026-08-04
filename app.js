@@ -102,10 +102,16 @@ function hostnameOf(url) {
    korrekt encodete Ziel-URL bauen, die auf den Tag geschrieben wird.
    ========================================================= */
 
+/* Eigenes URL-Schema für Tags, die aus der nativen App heraus beschrieben
+   werden: öffnet zuverlässig die App, ganz ohne Android-App-Links-
+   Domainverifizierung (die sich in der Praxis als zu unzuverlässig erwiesen
+   hat). Bewusster Trade-off: ein so beschriebener Tag funktioniert NICHT
+   mehr auf einem fremden Handy ohne installierte App (kein Browser-
+   Fallback) - anders als bei den https://-Tags aus der Web-PWA (Phase 1),
+   die weiterhin überall funktionieren. */
+const NATIVE_TAG_SCHEME = "nfcaktionen";
+
 function buildTagUrl(config) {
-  // index.html liegt im selben Verzeichnis wie diese Datei -
-  // das funktioniert automatisch mit dem GitHub-Pages-Unterpfad.
-  const base = new URL("index.html", window.location.href);
   const params = new URLSearchParams();
   params.set("type", config.type);
 
@@ -133,6 +139,13 @@ function buildTagUrl(config) {
     params.set("items", JSON.stringify(config.items));
   }
 
+  if (isNativePlatform()) {
+    return `${NATIVE_TAG_SCHEME}://tag?${params.toString()}`;
+  }
+
+  // index.html liegt im selben Verzeichnis wie diese Datei -
+  // das funktioniert automatisch mit dem GitHub-Pages-Unterpfad.
+  const base = new URL("index.html", window.location.href);
   base.search = params.toString();
   return base.toString();
 }

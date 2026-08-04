@@ -8,9 +8,20 @@
 
 **Auf einem Android-Emulator (API 34, Pixel 6, keine NFC-Hardware) erfolgreich verifiziert:** PIN-Lock/Kindermodus, Dashboard, Tag-Infos-Fehlerbehandlung (sauberer "NFC hardware not available"-Hinweis statt Absturz - hat einen echten Bug in `native.js` aufgedeckt und behoben, `CapacitorNfc.addListener().then` war zur Laufzeit kaputt), Push-Berechtigungsdialog, FCM-Token-Registrierung beim Worker, und **echte FCM-Zustellung als System-Benachrichtigung** bei App im Hintergrund - der komplette Worker-Pfad (RS256-JWT → Google-OAuth2 → FCM HTTP v1) funktioniert nachweislich Ende-zu-Ende. Web Push und FCM laufen dabei nachweislich parallel (ein `/notify`-Aufruf beliefert beide gleichzeitig erfolgreich).
 
-**App Links versucht und wieder verworfen:** technisch aufgesetzt und auf dem Emulator erfolgreich verifiziert (separates Root-Domain-Repo `zipcop.github.io` mit `.well-known/assetlinks.json`, `AndroidManifest.xml`-Intent-Filter mit `android:autoVerify="true"`, `pm get-app-links` zeigte "verified", simulierter Tag-Scan öffnete direkt die App). **Auf einem echten Testgerät griff die Verifizierung trotzdem nicht zuverlässig** (Tag-Scan öffnete weiterhin den Browser) - ohne Geräte-/adb-Zugriff zum Testgerät ließ sich die genaue Ursache nicht diagnostizieren (typische Verdächtige: Samsung One UI verlangt oft zusätzlich eine manuelle Bestätigung unter Einstellungen → Apps → Standardmäßig öffnen, oder eine bereits bestehende "Immer mit Chrome öffnen"-Präferenz von den Phase-1-Tests überstimmt die Verifizierung). Auf Wunsch wieder entfernt (Intent-Filter + `MainActivity`-Anpassung zurückgesetzt, Root-Repo gelöscht) statt weiter mit eingeschränkter Diagnosemöglichkeit zu debuggen - **Tags öffnen sich bei installierter App weiterhin im Browser, wie in Phase 1**. Bei Bedarf später erneut versuchen, dann aber mit adb-Zugriff zum Zielgerät (z.B. über kabellose Fehlerbehebung), um den tatsächlichen Verifizierungs-/Standard-App-Status direkt am Gerät zu prüfen.
+**App Links (https://-Domainverifizierung) versucht und verworfen:** technisch korrekt aufgesetzt und auf dem Emulator verifiziert (`pm get-app-links` zeigte "verified"), griff auf einem echten Testgerät aber nicht zuverlässig (Tag öffnete weiterhin den Browser) - ohne adb-Zugriff zum Testgerät nicht diagnostizierbar. Ersetzt durch die einfachere, robustere Lösung unten.
 
-**Noch offen:** Test auf echtem Gerät (Samsung Galaxy A55) für die native NFC-Funktion (Scannen/Schreiben - im Emulator mangels NFC-Hardware nicht testbar), App-Signierung für ein Release-APK.
+**Eigenes URL-Schema (`nfcaktionen://`) statt App Links - funktioniert zuverlässig, kein Domain-Verifizierungsrisiko:**
+
+- `app.js`: `buildTagUrl()` schreibt bei `isNativePlatform() === true` `nfcaktionen://tag?type=...&...` statt `https://.../index.html?...`. Die Web-PWA (Phase 1) ist davon unberührt und schreibt weiterhin ganz normale `https://`-URLs.
+- `AndroidManifest.xml`: einfacher Intent-Filter (ohne `autoVerify`, keine Digital Asset Links nötig) für das Schema `nfcaktionen`.
+- `MainActivity` reicht die Query-Parameter eines eingehenden `nfcaktionen://...`-Intents an `https://localhost/index.html` im WebView weiter - `action.js` verarbeitet das dadurch identisch zum Browser-Fall, ganz ohne eigene native Parsing-Logik.
+- Auf dem Emulator verifiziert: ein simulierter `nfcaktionen://`-Intent öffnet sofort und zuverlässig die App (kein Verzögerungs-/Verifizierungsschritt wie bei App Links).
+
+**Bewusster Trade-off:** Tags, die aus der nativen App heraus beschrieben werden, funktionieren nur noch mit installierter App - kein Browser-Fallback mehr auf fremden Handys ohne die App (anders als die `https://`-Tags aus Phase 1, die weiterhin überall funktionieren). Für dieses Projekt so gewünscht, da die "fremdes Handy ohne App"-Kompatibilität für die native-App-Nutzung nicht mehr benötigt wird.
+
+**Wichtig für bereits vorhandene Test-Tags:** Ein physischer Tag behält seinen bisherigen `https://`-Inhalt, bis er aktiv neu beschrieben wird (z.B. über "Erneut auf Tag schreiben" in der App) - das Umstellen des Schemas wirkt sich nicht rückwirkend auf schon beschriebene Tags aus.
+
+**Noch offen:** Test auf echtem Gerät (Samsung Galaxy A55) für die native NFC-Funktion inkl. des neuen Schemas (im Emulator mangels NFC-Hardware nur simuliert testbar), App-Signierung für ein Release-APK.
 
 ## Grundprinzip
 
