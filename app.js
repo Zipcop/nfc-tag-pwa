@@ -41,6 +41,18 @@ function randomId(prefix) {
   return prefix ? `${prefix}-${rand}` : rand;
 }
 
+const TYPE_META = {
+  timer: { icon: "clock", label: "Timer" },
+  contact: { icon: "contact", label: "Kontakt" },
+};
+
+function tagMetaText(tag) {
+  if (tag.type === "timer") {
+    return `Timer · ${tag.minutes} min`;
+  }
+  return `Kontakt · ${tag.notify ? "Push aktiv" : "Kein Push"}`;
+}
+
 /* =========================================================
    URL-Building: aus einer Tag-Konfiguration die vollständige,
    korrekt encodete Ziel-URL bauen, die auf den Tag geschrieben wird.
@@ -98,6 +110,70 @@ function isWebNfcSupported() {
 async function writeNfcTag(url) {
   const ndef = new NDEFReader();
   await ndef.write({ records: [{ recordType: "url", data: url }] });
+}
+
+/* Schreibt eine leere NDEF-Nachricht - der Tag löst danach beim Scannen
+   nichts mehr aus. Nicht rückgängig machbar. */
+async function eraseNfcTag() {
+  const ndef = new NDEFReader();
+  await ndef.write({ records: [] });
+}
+
+/* Wartet auf genau ein Scan-Ergebnis (ein Tag-Kontakt) und liefert das
+   NDEFReadingEvent zurück. Über signal abbrechbar (z.B. "Abbrechen"-Button). */
+function scanNfcTagOnce(signal) {
+  return new Promise((resolve, reject) => {
+    const ndef = new NDEFReader();
+
+    function cleanup() {
+      ndef.removeEventListener("reading", onReading);
+      ndef.removeEventListener("readingerror", onReadingError);
+    }
+    function onReading(event) {
+      cleanup();
+      resolve(event);
+    }
+    function onReadingError() {
+      cleanup();
+      reject(new Error("Tag konnte nicht gelesen werden."));
+    }
+
+    ndef.addEventListener("reading", onReading);
+    ndef.addEventListener("readingerror", onReadingError);
+    ndef.scan({ signal }).catch((err) => {
+      cleanup();
+      reject(err);
+    });
+  });
+}
+
+/* Bringt einen NDEF-Record in eine für die Anzeige geeignete Form.
+   Web NFC liefert nur Typ + Rohinhalt - keinen Chip-Typ, keine Kapazität. */
+function formatNdefRecord(record) {
+  const type = record.recordType || "unbekannt";
+  if (record.recordType === "empty") {
+    return { type, content: "(leer)" };
+  }
+  let content = "";
+  try {
+    if (record.data) {
+      const decoder = new TextDecoder(record.encoding || "utf-8");
+      content = decoder.decode(record.data);
+    }
+  } catch {
+    content = "(Binärdaten, nicht als Text darstellbar)";
+  }
+  return { type, content: content || "(kein Inhalt)" };
+}
+
+/* Grobe Näherung der Nachrichtengröße in Byte (Payload + Typ + kleiner
+   Header-Zuschlag pro Record) - kein exaktes Maß für die Speicherkapazität. */
+function estimateNdefMessageSize(records) {
+  return records.reduce((sum, r) => {
+    const payloadLen = r.data ? r.data.byteLength : 0;
+    const typeLen = r.recordType ? r.recordType.length : 0;
+    return sum + payloadLen + typeLen + 4;
+  }, 0);
 }
 
 /* =========================================================

@@ -27,6 +27,11 @@
       Neuen Tag einrichten
     </a>
 
+    <button type="button" id="tag-info-btn" class="btn btn-outline btn-block">
+      <span class="icon" data-icon="info"></span>
+      Tag-Infos anzeigen
+    </button>
+
     <div id="tag-list" class="tag-list"></div>
 
     <div id="empty-state" class="empty-state" hidden>
@@ -40,10 +45,15 @@
 
 </div>
 
+<div id="modal-overlay" class="modal-overlay" hidden>
+  <div id="modal-content" class="modal surface-card"></div>
+</div>
+
 <script src="icons.js"></script>
 <script src="app.js"></script>
 <script src="dashboard.js"></script>
 <script src="action.js"></script>
+<script src="nfc-tools.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     hydrateIcons();
@@ -52,6 +62,7 @@
       initActionView(params);
     } else {
       initDashboard();
+      document.getElementById("tag-info-btn").addEventListener("click", openTagInfoModal);
     }
     registerServiceWorker();
   });

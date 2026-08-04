@@ -19,6 +19,17 @@ function initActionView(params) {
 
 /* ---------------- Timer ---------------- */
 
+function buildTimerIntentUrl(label, seconds) {
+  return (
+    "intent://timer/#Intent;" +
+    "action=android.intent.action.SET_TIMER;" +
+    `S.android.intent.extra.alarm.MESSAGE=${encodeURIComponent(label)};` +
+    `i.android.intent.extra.alarm.LENGTH=${seconds};` +
+    "B.android.intent.extra.alarm.SKIP_UI=true;" +
+    "end"
+  );
+}
+
 function initTimerAction(params) {
   const minutes = parseInt(params.get("min"), 10);
   const label = params.get("label") || "Timer";
@@ -30,21 +41,28 @@ function initTimerAction(params) {
   }
 
   const seconds = minutes * 60;
+  const intentUrl = buildTimerIntentUrl(label, seconds);
+
+  // Der Redirect muss die allererste Aktion sein - kein DOM-Update, kein
+  // await/setTimeout davor. Sonst wertet Chrome ihn nicht mehr als an die
+  // Nutzer-Geste (Tap auf die Scan-Benachrichtigung) gekoppelt und blockiert
+  // den App-Aufruf stillschweigend.
+  window.location.href = intentUrl;
+
   view.innerHTML = `
     <div class="sticker-card type-timer action-card">
       <span class="action-icon">${ICONS.clock}</span>
       <h1>${escapeForDisplay(label)}</h1>
       <p>Timer wird gestartet…</p>
+      <button type="button" id="manual-timer-btn" class="btn btn-primary btn-block">
+        <span class="icon">${ICONS.clock}</span>Timer jetzt starten
+      </button>
+      <p class="field-hint">Falls sich die Uhr-App nicht automatisch öffnet, tippe oben auf den Button.</p>
     </div>
   `;
-
-  const intentUrl =
-    "intent:#Intent;action=android.intent.action.SET_TIMER;" +
-    `S.android.intent.extra.alarm.MESSAGE=${encodeURIComponent(label)};` +
-    `i.android.intent.extra.alarm.LENGTH=${seconds};` +
-    "B.android.intent.extra.alarm.SKIP_UI=true;end";
-
-  window.location.href = intentUrl;
+  document.getElementById("manual-timer-btn").addEventListener("click", () => {
+    window.location.href = intentUrl;
+  });
 
   // Falls der Intent nicht greift (z.B. anderes Gerät/Browser), bleibt die
   // Seite sichtbar - dann auf den In-Page-Countdown zurückfallen.
