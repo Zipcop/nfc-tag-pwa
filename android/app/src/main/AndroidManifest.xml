@@ -22,20 +22,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- App Links: Tags mit https://zipcop.github.io/nfc-tag-pwa/...
-                 öffnen bei installierter App direkt diese statt des Browsers.
-                 Verifizierung über https://zipcop.github.io/.well-known/assetlinks.json
-                 (separates Root-Domain-Repo zipcop.github.io). -->
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="zipcop.github.io"
-                    android:pathPrefix="/nfc-tag-pwa" />
-            </intent-filter>
-
         </activity>
 
         <provider
