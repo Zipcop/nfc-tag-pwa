@@ -6,8 +6,8 @@ import math
 import os
 
 OUT_DIR = os.path.join(os.path.dirname(__file__), "..", "icons")
-BG = (15, 157, 140, 255)  # theme_color
-FG = (255, 255, 255, 255)
+BG = (232, 135, 61, 255)  # --amber
+FG = (33, 29, 24, 255)  # --ink
 
 
 def make_icon(size):

@@ -7,33 +7,38 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="theme-color" content="#0f9d8c">
+<meta name="theme-color" content="#14171C">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="app">
+  <a href="index.html" class="back-link">
+    <span class="icon" data-icon="back"></span>
+    Zurück zum Dashboard
+  </a>
+
   <header class="page-header">
     <h1 id="page-title">Neuen Tag einrichten</h1>
-    <p><a href="index.html" style="color:inherit">← Zurück zum Dashboard</a></p>
   </header>
 
   <div id="nfc-unsupported-banner" class="banner banner-warning" hidden>
-    Diese Funktion benötigt Chrome auf einem Android-Handy mit NFC.
+    <span class="icon" data-icon="warning"></span>
+    <span>Diese Funktion benötigt Chrome auf einem Android-Handy mit NFC.</span>
   </div>
 
-  <form id="tag-form" novalidate>
+  <form id="tag-form" class="surface-card" novalidate>
 
     <fieldset>
       <label>Typ</label>
       <div class="type-choice">
         <label>
           <input type="radio" name="tagType" value="timer" checked>
-          <span class="emoji">⏱</span>
+          <span class="type-icon" data-icon="clock"></span>
           <span>Timer</span>
         </label>
         <label>
           <input type="radio" name="tagType" value="contact">
-          <span class="emoji">📇</span>
+          <span class="type-icon" data-icon="contact"></span>
           <span>Kontakt</span>
         </label>
       </div>
@@ -66,15 +71,17 @@
       </p>
     </fieldset>
 
-    <button type="submit" id="submit-btn" class="btn btn-primary">Auf NFC-Tag schreiben</button>
+    <button type="submit" id="submit-btn" class="btn btn-primary btn-block">Auf NFC-Tag schreiben</button>
     <div id="write-status"></div>
   </form>
 </div>
 
+<script src="icons.js"></script>
 <script src="app.js"></script>
 <script src="setup.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+    hydrateIcons();
     initSetup();
     registerServiceWorker();
   });

@@ -13,7 +13,7 @@ function initActionView(params) {
   } else if (type === "contact") {
     initContactAction(params);
   } else {
-    view.innerHTML = '<div class="banner banner-error">Unbekannter Tag-Typ.</div>';
+    view.innerHTML = `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Unbekannter Tag-Typ.</span></div>`;
   }
 }
 
@@ -25,14 +25,14 @@ function initTimerAction(params) {
   const view = document.getElementById("action-view");
 
   if (!Number.isFinite(minutes) || minutes <= 0) {
-    view.innerHTML = '<div class="banner banner-error">Dieser Tag enthält keine gültige Timer-Dauer.</div>';
+    view.innerHTML = `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Dieser Tag enthält keine gültige Timer-Dauer.</span></div>`;
     return;
   }
 
   const seconds = minutes * 60;
   view.innerHTML = `
-    <div class="action-card">
-      <span class="big-emoji">⏱</span>
+    <div class="sticker-card type-timer action-card">
+      <span class="action-icon">${ICONS.clock}</span>
       <h1>${escapeForDisplay(label)}</h1>
       <p>Timer wird gestartet…</p>
     </div>
@@ -62,12 +62,13 @@ function startFallbackCountdown(seconds, label) {
 
   view.innerHTML = `
     <div class="banner banner-warning">
-      Der native Timer konnte nicht automatisch gestartet werden. Countdown läuft stattdessen hier in der Seite.
+      <span class="icon">${ICONS.warning}</span>
+      <span>Der native Timer konnte nicht automatisch gestartet werden. Countdown läuft stattdessen hier in der Seite.</span>
     </div>
-    <div class="action-card">
+    <div class="sticker-card type-timer action-card">
       <p class="timer-label">${escapeForDisplay(label)}</p>
       <div class="countdown" id="countdown-display">--:--</div>
-      ${notifySupported ? '<button id="notify-permission-btn" class="btn btn-secondary">🔔 Benachrichtigung erlauben</button>' : ""}
+      ${notifySupported ? `<button id="notify-permission-btn" class="btn btn-accent-outline"><span class="icon">${ICONS.bell}</span>Benachrichtigung erlauben</button>` : ""}
       <p class="field-hint">Für einen zuverlässigen Alarm bitte diesen Tab bzw. die App offen lassen – im Hintergrund kann das Handy den Timer pausieren.</p>
     </div>
   `;
@@ -114,7 +115,7 @@ function onTimerFinished(label) {
   const view = document.getElementById("action-view");
   const banner = document.createElement("div");
   banner.className = "banner banner-success";
-  banner.textContent = "⏰ Zeit abgelaufen!";
+  banner.innerHTML = `<span class="icon">${ICONS.bell}</span><span>Zeit abgelaufen!</span>`;
   view.prepend(banner);
 }
 
@@ -149,13 +150,13 @@ function initContactAction(params) {
 
   const view = document.getElementById("action-view");
   view.innerHTML = `
-    <div class="action-card">
-      <span class="big-emoji">📇</span>
+    <div class="sticker-card type-contact action-card">
+      <span class="action-icon">${ICONS.contact}</span>
       <div class="contact-name">${escapeForDisplay(name)}</div>
       ${msg ? `<div class="contact-msg">${escapeForDisplay(msg)}</div>` : ""}
       <div class="action-buttons">
-        ${tel ? `<a class="btn btn-primary" href="tel:${encodeURIComponent(tel)}">📞 Anrufen</a>` : ""}
-        ${tel ? `<a class="btn btn-secondary" href="https://wa.me/${telToDigits(tel)}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ""}
+        ${tel ? `<a class="btn btn-accent" href="tel:${encodeURIComponent(tel)}"><span class="icon">${ICONS.phone}</span>Anrufen</a>` : ""}
+        ${tel ? `<a class="btn btn-accent-outline" href="https://wa.me/${telToDigits(tel)}" target="_blank" rel="noopener"><span class="icon">${ICONS.chat}</span>WhatsApp</a>` : ""}
       </div>
     </div>
     <footer class="page-footer">Diese Seite gehört zu ${escapeForDisplay(name)} – falls gefunden, bitte melden.</footer>

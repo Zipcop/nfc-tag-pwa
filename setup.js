@@ -135,22 +135,22 @@ async function handleSubmit(event) {
   const submitBtn = document.getElementById("submit-btn");
 
   submitBtn.disabled = true;
-  statusEl.textContent = "Bitte Tag jetzt ans Handy halten…";
   statusEl.className = "";
+  statusEl.textContent = "Bitte Tag jetzt ans Handy halten…";
 
   try {
     await writeNfcTag(url);
     if (!readonlyMode) {
       saveTag(config);
     }
-    statusEl.textContent = "✅ Tag erfolgreich beschrieben!";
     statusEl.className = "banner banner-success";
+    statusEl.innerHTML = `<span class="icon">${ICONS.check}</span><span>Tag erfolgreich beschrieben!</span>`;
     setTimeout(() => {
       window.location.href = "index.html";
     }, 1200);
   } catch (err) {
-    statusEl.textContent = `❌ Schreiben fehlgeschlagen: ${err.message || err}. Bitte erneut versuchen.`;
     statusEl.className = "banner banner-error";
+    statusEl.innerHTML = `<span class="icon">${ICONS.close}</span><span>Schreiben fehlgeschlagen: ${escapeForDisplay(err.message || String(err))}. Bitte erneut versuchen.</span>`;
   } finally {
     submitBtn.disabled = false;
   }
