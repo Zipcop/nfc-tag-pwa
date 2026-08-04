@@ -42,6 +42,18 @@ Capacitor übernimmt den kompletten HTML/CSS/JS-Code aus Phase 1 praktisch unver
 - Gewähltes Plugin für Lesen/Schreiben nutzen, Logik analog zur bisherigen Web-NFC-Funktion aus Phase 1.
 - In `AndroidManifest.xml`: `<uses-permission android:name="android.permission.NFC" />` sowie `<uses-feature android:name="android.hardware.nfc" android:required="false" />` (auf `false`, damit die App theoretisch auch ohne NFC-Hardware installierbar bleibt).
 
+## Push-Benachrichtigungen (ersetzt Web Push aus Phase 1)
+
+Phase 1 nutzt Web Push über den separaten [nfc-push-worker](../nfc-push-worker) (Cloudflare Worker, `@block65/webcrypto-web-push`). In der nativen Capacitor-App wird das durch echtes FCM ersetzt:
+
+- Plugin: `@capacitor/push-notifications` (Android, nutzt intern Firebase Cloud Messaging).
+- **Kein neues Firebase-Projekt anlegen.** Stattdessen die NFC-App als zusätzliche Android-App im bereits bestehenden Firebase-Projekt der Wetter-App registrieren:
+  - eigene Package-ID für die NFC-App im bestehenden Projekt anlegen,
+  - die dafür generierte `google-services.json` in `android/app/` ablegen,
+  - denselben Service-Account-Schlüssel des bestehenden Projekts für den Worker weiterverwenden (kein zweiter Schlüssel nötig).
+- Beim App-Start `PushNotifications.register()` aufrufen und das resultierende FCM-Token an den bestehenden Worker-Endpunkt `/subscribe` schicken - gleiche Struktur wie beim Web-Push-Ansatz aus Phase 1 (dort wird die `PushSubscription` gespeichert, hier einfach das Token anstelle davon; die KV-Speicherung im Worker bleibt unverändert).
+- Im Worker: `/notify` so anpassen, dass er bei einem gespeicherten FCM-Token statt `buildPushPayload()`/Web Push die Firebase-Admin-API (HTTP v1, mit dem Service-Account-Schlüssel signiert) aufruft, um die Nachricht zuzustellen. Die Unterscheidung Web-Push-Subscription vs. FCM-Token kann z.B. an der Form des gespeicherten Objekts festgemacht werden (`endpoint`+`keys` vs. reiner Token-String).
+
 ## App Links (damit das eigene Handy Tags direkt in der App öffnet)
 
 - NFC-Tags weiterhin mit einer stinknormalen `https://`-URL beschreiben, genau wie in Phase 1 – wichtig, damit fremde Handys (z.B. beim Schlüsselanhänger-Szenario) den Tag weiterhin ganz normal im Browser öffnen können, auch ohne die App installiert zu haben.

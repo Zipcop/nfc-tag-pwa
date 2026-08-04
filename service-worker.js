@@ -1,4 +1,4 @@
-const CACHE_NAME = "nfc-aktionen-v7";
+const CACHE_NAME = "nfc-aktionen-v8";
 const PRECACHE_URLS = [
   "./",
   "./index.html",
@@ -11,6 +11,7 @@ const PRECACHE_URLS = [
   "./setup.js",
   "./nfc-tools.js",
   "./lock.js",
+  "./push.js",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
@@ -35,8 +36,8 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
-  // Nur eigene GET-Requests behandeln - Benachrichtigungen (ntfy.sh) und
-  // sonstige externe/POST-Requests laufen unverändert direkt ans Netzwerk.
+  // Nur eigene GET-Requests behandeln - Benachrichtigungen (nfc-push-worker)
+  // und sonstige externe/POST-Requests laufen unverändert direkt ans Netzwerk.
   if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) {
     return;
   }
@@ -47,6 +48,41 @@ self.addEventListener("fetch", (event) => {
         return cached;
       }
       return fetch(request).catch(() => cached);
+    })
+  );
+});
+
+self.addEventListener("push", (event) => {
+  let data = { title: "NFC Aktionen", body: "" };
+  try {
+    if (event.data) {
+      data = event.data.json();
+    }
+  } catch {
+    /* Unerwartetes Format - bei den Default-Werten bleiben statt abzustürzen */
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || "NFC Aktionen", {
+      body: data.body || "",
+      icon: "icons/icon-192.png",
+      badge: "icons/icon-192.png",
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: "window" }).then((windowClients) => {
+      for (const client of windowClients) {
+        if ("focus" in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow("./index.html");
+      }
     })
   );
 });

@@ -171,14 +171,14 @@ function typeFieldsHtml() {
         <input type="checkbox" id="field-notify">
       </div>
       <p id="notify-hint" class="field-hint" hidden>
-        Du wirst per ntfy.sh benachrichtigt. Installiere dafür kostenlos die ntfy-App und abonniere das Thema, das nach dem Speichern angezeigt wird.
+        Du bekommst dafür eine Browser-Benachrichtigung auf diesem Handy. Falls noch nicht geschehen, dafür im Dashboard „Benachrichtigungen aktivieren" antippen.
       </p>
     </fieldset>
 
     <fieldset id="checkin-fields" hidden>
       <label for="field-checkin-msg">Nachricht beim Scan</label>
       <textarea id="field-checkin-msg" placeholder="z.B. ist zuhause angekommen"></textarea>
-      <p class="field-hint">Beim Scannen wird automatisch eine Push-Benachrichtigung verschickt (per ntfy.sh). Das zugehörige Thema zeigt die App nach dem Schreiben an.</p>
+      <p class="field-hint">Beim Scannen wird automatisch eine Browser-Benachrichtigung verschickt. Falls noch nicht geschehen, dafür im Dashboard „Benachrichtigungen aktivieren" antippen.</p>
     </fieldset>
 
     <fieldset id="route-fields" hidden>
@@ -334,14 +334,12 @@ function collectFormData(existingTag) {
   }
 
   if (type === "contact") {
-    const notify = document.getElementById("field-notify").checked;
     return {
       ...base,
       name: label,
       tel: document.getElementById("field-tel").value.trim(),
       msg: document.getElementById("field-msg").value.trim(),
-      notify,
-      topic: notify ? (existingTag && existingTag.topic) || randomId("nfc") : null,
+      notify: document.getElementById("field-notify").checked,
     };
   }
 
@@ -350,7 +348,6 @@ function collectFormData(existingTag) {
       ...base,
       name: label,
       msg: document.getElementById("field-checkin-msg").value.trim(),
-      topic: (existingTag && existingTag.topic) || randomId("nfc"),
     };
   }
 

@@ -140,7 +140,6 @@ function initContactAction(params) {
   const tel = params.get("tel") || "";
   const msg = params.get("msg") || "";
   const notify = params.get("notify") === "1";
-  const topic = params.get("topic") || "";
 
   document.getElementById("action-content").innerHTML = `
     <div class="sticker-card type-contact action-card">
@@ -155,8 +154,8 @@ function initContactAction(params) {
     <footer class="page-footer">Diese Seite gehört zu ${escapeForDisplay(name)} – falls gefunden, bitte melden.</footer>
   `;
 
-  if (notify && topic) {
-    sendNotification(topic, `Tag gescannt: ${name || "Kontakt-Tag"}`);
+  if (notify) {
+    sendNotification("NFC Aktionen", `Tag gescannt: ${name || "Kontakt-Tag"}`);
   }
 }
 
@@ -165,7 +164,6 @@ function initContactAction(params) {
 function initCheckinAction(params) {
   const name = params.get("name") || "";
   const msg = params.get("msg") || "";
-  const topic = params.get("topic") || "";
 
   document.getElementById("action-content").innerHTML = `
     <div class="sticker-card type-checkin action-card">
@@ -175,9 +173,7 @@ function initCheckinAction(params) {
     </div>
   `;
 
-  if (topic) {
-    sendNotification(topic, msg || `${name || "Jemand"} ist angekommen.`);
-  }
+  sendNotification(name || "Check-in", msg || `${name || "Jemand"} ist angekommen.`);
 }
 
 /* ---------------- Navigation/Route ---------------- */

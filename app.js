@@ -1,6 +1,19 @@
 "use strict";
 
 /* =========================================================
+   Web-Push-Konfiguration - nach dem Deployment von nfc-push-worker
+   (separates Projekt, siehe dessen README) die Worker-URL eintragen.
+   VAPID_PUBLIC_KEY und PUSH_API_KEY sind unkritisch (liegen ohnehin
+   offen im Frontend-Code) - der private VAPID-Schlüssel existiert
+   NUR als Worker-Secret und darf nie hierher.
+   ========================================================= */
+
+const PUSH_WORKER_URL = "https://nfc-push-worker.wargel59.workers.dev";
+const PUSH_API_KEY = "Xhvfgb13non--eFOPqsrn3Xaj1thlHdh";
+const VAPID_PUBLIC_KEY =
+  "BNAVuVsSAtgTaz7e_kjh2iE0qfInSEHyZ-RgkNS7no00O4L61NqBNw03mFg0HUi0biY6fz7dMcypSb3icn7mk74";
+
+/* =========================================================
    Storage: Tag-Konfigurationen liegen nur lokal auf diesem
    Handy in localStorage (kein Backend, keine Synchronisation).
    ========================================================= */
@@ -105,12 +118,10 @@ function buildTagUrl(config) {
     params.set("msg", config.msg || "");
     if (config.notify) {
       params.set("notify", "1");
-      params.set("topic", config.topic);
     }
   } else if (config.type === "checkin") {
     params.set("name", config.name);
     params.set("msg", config.msg || "");
-    params.set("topic", config.topic);
   } else if (config.type === "route") {
     params.set("label", config.label);
     params.set("dest", config.dest);
@@ -146,15 +157,18 @@ function isSafeRedirectUrl(url) {
 
 /* =========================================================
    Benachrichtigungsdienst - austauschbar.
-   Aktuell: ntfy.sh (kein Account nötig). Für einen anderen
-   Dienst (z.B. Telegram-Bot) einfach diese Funktion ersetzen.
+   Aktuell: echte Web-Push-Benachrichtigungen über den separaten
+   nfc-push-worker (Cloudflare Worker). Für einen anderen Dienst
+   einfach diese Funktion ersetzen - der Rest der App kennt nur
+   sendNotification(title, body).
    ========================================================= */
 
-async function sendNotification(topic, message) {
+async function sendNotification(title, body) {
   try {
-    await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
+    await fetch(`${PUSH_WORKER_URL}/notify`, {
       method: "POST",
-      body: message,
+      headers: { "Content-Type": "application/json", "X-Api-Key": PUSH_API_KEY },
+      body: JSON.stringify({ title, body }),
     });
   } catch (err) {
     console.warn("Benachrichtigung konnte nicht gesendet werden:", err);

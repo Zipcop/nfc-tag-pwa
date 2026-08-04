@@ -20,16 +20,19 @@ Wichtig: Dieser Schutz betrifft **nur** die Verwaltung. Scannt ein Kind einen fe
 - Ein Android-Handy mit NFC (zum **Beschreiben** von Tags)
 - Chrome, Edge oder Samsung Internet auf dem Handy (Web-NFC funktioniert nur dort, nicht auf dem iPhone und nicht am Desktop-PC)
 - NFC-Tags (z.B. NTAG213/215/216-Sticker oder -Karten)
-- Optional: die kostenlose **ntfy-App**, falls du bei einem Kontakt-Tag benachrichtigt werden willst, sobald jemand ihn scannt
 
 ## Schritt 1: NFC am Handy aktivieren
 
 Einstellungen → Verbindungen → NFC und kontaktloses Bezahlen → NFC einschalten (Wortlaut je nach Android-Version leicht anders).
 
-## Schritt 2: ntfy-App installieren (nur falls gewünscht)
+## Schritt 2: Benachrichtigungen aktivieren (nur falls gewünscht)
 
-1. Im Play Store „ntfy" installieren.
-2. Die App öffnen – ein Thema/Topic abonnierst du erst, wenn du einen Kontakt-Tag mit aktivierter Benachrichtigung eingerichtet hast (siehe Schritt 3). Die App zeigt dir dann das genaue Thema an, das du abonnieren musst.
+Für Kontakt-Tags mit aktivierter Benachrichtigung oder Check-in-Tags kommt eine echte Browser-Benachrichtigung an – keine separate App nötig. Einmalig einrichten:
+
+1. Verwaltung im Dashboard entsperren (siehe „Kindermodus" oben).
+2. Auf **„Benachrichtigungen aktivieren"** tippen und die Chrome-Berechtigungsabfrage bestätigen.
+
+Das funktioniert nur, wenn der zugehörige [nfc-push-worker](../nfc-push-worker) bereits deployt und in der App (`app.js`, `PUSH_WORKER_URL`) hinterlegt ist - siehe dessen README.
 
 ## Schritt 3: Einen Tag einrichten
 

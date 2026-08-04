@@ -206,6 +206,7 @@ function wirePinPad(onComplete) {
 function unlockDashboard() {
   showScreen("unlocked");
   initDashboard();
+  initPushUI();
   resetAutoLockTimer();
   attachActivityListeners();
 }

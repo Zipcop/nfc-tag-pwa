@@ -49,6 +49,11 @@
         Tag-Infos anzeigen
       </button>
 
+      <button type="button" id="push-subscribe-btn" class="btn btn-outline btn-block" hidden>
+        <span class="icon" data-icon="bell"></span>
+        Benachrichtigungen aktivieren
+      </button>
+
       <div id="tag-list" class="tag-list"></div>
 
       <div id="empty-state" class="empty-state" hidden>
@@ -79,6 +84,7 @@
 <script src="dashboard.js"></script>
 <script src="action.js"></script>
 <script src="nfc-tools.js"></script>
+<script src="push.js"></script>
 <script src="lock.js"></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
