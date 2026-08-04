@@ -282,17 +282,22 @@ function nativeScanTagOnce(signal) {
       signal.addEventListener("abort", onAbort);
     }
 
-    CapacitorNfc.addListener("nfcEvent", (event) => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      cleanup();
-      const tag = event.tag || {};
-      const serialNumber = (tag.id || []).map((b) => b.toString(16).padStart(2, "0")).join(":");
-      const records = (tag.ndefMessage || []).map(toWebNfcCompatibleRecord);
-      resolve({ serialNumber, message: { records } });
-    }).then((handle) => {
+    // Promise.resolve(...) statt direktem .then() - addListener() liefert je
+    // nach Capacitor-/Plugin-Version nicht immer zuverlässig ein echtes
+    // Promise zurück (beobachtet: ".then is not a function" zur Laufzeit).
+    Promise.resolve(
+      CapacitorNfc.addListener("nfcEvent", (event) => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanup();
+        const tag = event.tag || {};
+        const serialNumber = (tag.id || []).map((b) => b.toString(16).padStart(2, "0")).join(":");
+        const records = (tag.ndefMessage || []).map(toWebNfcCompatibleRecord);
+        resolve({ serialNumber, message: { records } });
+      })
+    ).then((handle) => {
       listenerHandle = handle;
     });
 
