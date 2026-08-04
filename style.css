@@ -1,0 +1,373 @@
+:root {
+  --color-bg: #101820;
+  --color-surface: #1a2530;
+  --color-surface-hi: #22303d;
+  --color-text: #f0f4f7;
+  --color-text-dim: #9db0bd;
+  --color-accent: #0f9d8c;
+  --color-accent-hi: #14c2ac;
+  --color-danger: #d9534f;
+  --color-danger-hi: #e57470;
+  --color-warning: #e0a72c;
+  --radius: 14px;
+  font-size: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.4;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 48px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0 0 4px;
+}
+
+h2 {
+  font-size: 1.3rem;
+  margin: 0 0 12px;
+}
+
+p {
+  color: var(--color-text-dim);
+}
+
+header.page-header {
+  margin-bottom: 24px;
+}
+
+/* Buttons */
+
+button, .btn {
+  font: inherit;
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+  width: 100%;
+  min-height: 56px;
+  transition: transform 0.08s ease, opacity 0.15s ease;
+}
+
+button:active, .btn:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: #04211c;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-hi);
+}
+
+.btn-secondary {
+  background: var(--color-surface-hi);
+  color: var(--color-text);
+}
+
+.btn-danger {
+  background: transparent;
+  color: var(--color-danger-hi);
+  border: 1px solid var(--color-danger);
+}
+
+.btn-block {
+  margin-top: 12px;
+}
+
+.btn-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn-row .btn, .btn-row button {
+  width: auto;
+  flex: 1;
+  min-height: 44px;
+  font-size: 0.92rem;
+  padding: 10px 12px;
+}
+
+/* Dashboard */
+
+.tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.tag-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.tag-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.tag-icon {
+  font-size: 1.6rem;
+}
+
+.tag-label {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.tag-meta {
+  color: var(--color-text-dim);
+  font-size: 0.9rem;
+  margin: 2px 0 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--color-text-dim);
+}
+
+.empty-state .big-emoji {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* Forms */
+
+fieldset {
+  border: none;
+  padding: 0;
+  margin: 0 0 20px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+
+label:first-child {
+  margin-top: 0;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="tel"],
+textarea {
+  width: 100%;
+  font: inherit;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-surface-hi);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+input:invalid:not(:placeholder-shown) {
+  border-color: var(--color-danger);
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.type-choice {
+  display: flex;
+  gap: 10px;
+}
+
+.type-choice label {
+  flex: 1;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-surface-hi);
+  border-radius: var(--radius);
+  padding: 16px 10px;
+  cursor: pointer;
+  font-weight: 600;
+  text-align: center;
+}
+
+.type-choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.type-choice input:checked + span,
+.type-choice label:has(input:checked) {
+  border-color: var(--color-accent);
+  background: var(--color-surface-hi);
+}
+
+.type-choice .emoji {
+  font-size: 1.8rem;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  background: var(--color-surface);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.switch-row label {
+  margin: 0;
+  font-weight: 500;
+  flex: 1;
+}
+
+.switch-row input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+}
+
+.field-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-dim);
+  margin-top: 4px;
+}
+
+.error-text {
+  color: var(--color-danger-hi);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: none;
+}
+
+/* Status / banners */
+
+.banner {
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+
+.banner-warning {
+  background: rgba(224, 167, 44, 0.15);
+  border: 1px solid var(--color-warning);
+  color: var(--color-warning);
+}
+
+.banner-error {
+  background: rgba(217, 83, 79, 0.15);
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger-hi);
+}
+
+.banner-success {
+  background: rgba(15, 157, 140, 0.15);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent-hi);
+}
+
+#write-status {
+  min-height: 1.4em;
+  text-align: center;
+  font-weight: 600;
+  margin-top: 16px;
+}
+
+/* Action view */
+
+.action-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.countdown {
+  font-size: 3.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin: 20px 0;
+}
+
+.timer-label {
+  font-size: 1.2rem;
+  color: var(--color-text-dim);
+}
+
+.contact-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.contact-msg {
+  background: var(--color-surface-hi);
+  border-radius: 10px;
+  padding: 14px;
+  margin: 16px 0;
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+footer.page-footer {
+  margin-top: 32px;
+  text-align: center;
+  color: var(--color-text-dim);
+  font-size: 0.85rem;
+}
+
+[hidden] {
+  display: none !important;
+}

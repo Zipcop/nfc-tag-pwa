@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NFC Aktionen</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#0f9d8c">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <div id="dashboard-view">
+    <header class="page-header">
+      <h1>🏷 NFC Aktionen</h1>
+      <p>Deine eingerichteten Tags auf diesem Handy.</p>
+    </header>
+
+    <a href="setup.html" class="btn btn-primary">+ Neuen Tag einrichten</a>
+
+    <div id="tag-list" class="tag-list"></div>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <span class="big-emoji">🏷</span>
+      <p>Noch keine Tags eingerichtet.<br>Tippe oben auf „+ Neuen Tag einrichten“.</p>
+    </div>
+  </div>
+
+  <div id="action-view" hidden></div>
+
+</div>
+
+<script src="app.js"></script>
+<script src="dashboard.js"></script>
+<script src="action.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has("type")) {
+      initActionView(params);
+    } else {
+      initDashboard();
+    }
+    registerServiceWorker();
+  });
+</script>
+</body>
+</html>
