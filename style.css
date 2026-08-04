@@ -9,6 +9,14 @@
   --amber-bg: #F7E4D0;
   --teal: #3F7368;
   --teal-bg: #DCEAE6;
+  --sage: #6B8F71;
+  --sage-bg: #DEE8DF;
+  --steel: #4C7A9C;
+  --steel-bg: #D9E6EE;
+  --mauve: #8B6F9C;
+  --mauve-bg: #E6DEEC;
+  --ochre: #A9863E;
+  --ochre-bg: #EFE6CE;
   --danger: #C1594B;
   --danger-bg: #F3DCD6;
   --fog: #8B909B;
@@ -196,6 +204,26 @@ button:disabled {
 .sticker-card.type-contact {
   --accent: var(--teal);
   --accent-bg: var(--teal-bg);
+}
+
+.sticker-card.type-checkin {
+  --accent: var(--sage);
+  --accent-bg: var(--sage-bg);
+}
+
+.sticker-card.type-route {
+  --accent: var(--steel);
+  --accent-bg: var(--steel-bg);
+}
+
+.sticker-card.type-link {
+  --accent: var(--mauve);
+  --accent-bg: var(--mauve-bg);
+}
+
+.sticker-card.type-checklist {
+  --accent: var(--ochre);
+  --accent-bg: var(--ochre-bg);
 }
 
 .sticker-card::before {
@@ -471,12 +499,12 @@ textarea {
 }
 
 .type-choice {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 
 .type-choice label {
-  flex: 1;
   margin: 0;
   display: flex;
   flex-direction: column;
@@ -533,6 +561,46 @@ textarea {
 .type-choice label:has(input[value="contact"]:checked) .type-icon {
   background: var(--card);
   color: var(--teal);
+}
+
+.type-choice label:has(input[value="checkin"]:checked) {
+  border-color: var(--sage);
+  background: var(--sage-bg);
+}
+
+.type-choice label:has(input[value="checkin"]:checked) .type-icon {
+  background: var(--card);
+  color: var(--sage);
+}
+
+.type-choice label:has(input[value="route"]:checked) {
+  border-color: var(--steel);
+  background: var(--steel-bg);
+}
+
+.type-choice label:has(input[value="route"]:checked) .type-icon {
+  background: var(--card);
+  color: var(--steel);
+}
+
+.type-choice label:has(input[value="link"]:checked) {
+  border-color: var(--mauve);
+  background: var(--mauve-bg);
+}
+
+.type-choice label:has(input[value="link"]:checked) .type-icon {
+  background: var(--card);
+  color: var(--mauve);
+}
+
+.type-choice label:has(input[value="checklist"]:checked) {
+  border-color: var(--ochre);
+  background: var(--ochre-bg);
+}
+
+.type-choice label:has(input[value="checklist"]:checked) .type-icon {
+  background: var(--card);
+  color: var(--ochre);
 }
 
 .switch-row {
@@ -652,12 +720,6 @@ textarea {
 
 /* ---------------- Aktions-Ansicht ---------------- */
 
-.action-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 .action-card {
   text-align: center;
   padding-top: 28px;
@@ -723,6 +785,87 @@ textarea {
   flex-direction: column;
   gap: 10px;
   margin-top: 16px;
+}
+
+.checklist-items {
+  text-align: left;
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.95rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.checklist-item input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.checklist-item input[type="checkbox"]:checked + span {
+  text-decoration: line-through;
+  color: var(--ink-dim);
+}
+
+/* ---------------- Checklist-Editor (Setup-Formular) ---------------- */
+
+.checklist-editor-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.checklist-editor-row input {
+  flex: 1;
+}
+
+.checklist-item-remove {
+  width: 36px;
+  height: 36px;
+  min-height: 0;
+  padding: 0;
+  flex-shrink: 0;
+  background: transparent;
+  color: var(--ink-dim);
+}
+
+.checklist-item-remove .icon {
+  width: 16px;
+  height: 16px;
+}
+
+.checklist-item-remove:active {
+  transform: none;
+}
+
+#add-checklist-item-btn {
+  margin-top: 4px;
+}
+
+/* ---------------- Größen-Hinweis vor dem Schreiben ---------------- */
+
+.size-preview {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  text-align: center;
+  color: var(--ink-dim);
+  margin-top: 10px;
+}
+
+.size-preview.size-warning {
+  color: var(--danger);
+  font-family: "Inter", sans-serif;
+  font-weight: 500;
 }
 
 .page-footer {

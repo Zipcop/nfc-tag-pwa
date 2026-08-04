@@ -7,28 +7,30 @@ function initActionView(params) {
   document.getElementById("action-view").hidden = false;
 
   const type = params.get("type");
-  if (type === "timer") {
-    initTimerAction(params);
-  } else if (type === "contact") {
-    initContactAction(params);
+  const handlers = {
+    timer: initTimerAction,
+    contact: initContactAction,
+    checkin: initCheckinAction,
+    route: initRouteAction,
+    link: initLinkAction,
+    checklist: initChecklistAction,
+  };
+
+  if (handlers[type]) {
+    handlers[type](params);
   } else {
     document.getElementById("action-content").innerHTML =
       `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Unbekannter Tag-Typ.</span></div>`;
   }
 }
 
-/* ---------------- Timer ---------------- */
-
-function buildTimerIntentUrl(label, seconds) {
-  return (
-    "intent://timer/#Intent;" +
-    "action=android.intent.action.SET_TIMER;" +
-    `S.android.intent.extra.alarm.MESSAGE=${encodeURIComponent(label)};` +
-    `i.android.intent.extra.alarm.LENGTH=${seconds};` +
-    "B.android.intent.extra.alarm.SKIP_UI=true;" +
-    "end"
-  );
-}
+/* ---------------- Timer ----------------
+   Web NFC / Web-Plattform hat keinen zuverlässigen Weg, einen nativen
+   Android-Alarm auszulösen (weder automatisch noch per Klick auf einen
+   intent://-Link - Chrome blockiert das strukturell zu inkonsistent).
+   Phase 1 setzt deshalb bewusst auf einen ehrlichen In-Page-Countdown.
+   Ein zuverlässiger, auch bei geschlossener App laufender Alarm braucht
+   die native Capacitor-Version (Phase 2, siehe PHASE2.md). */
 
 function initTimerAction(params) {
   const minutes = parseInt(params.get("min"), 10);
@@ -41,34 +43,18 @@ function initTimerAction(params) {
   }
 
   const seconds = minutes * 60;
-  const intentUrl = buildTimerIntentUrl(label, seconds);
   const notifySupported = "Notification" in window;
 
   content.innerHTML = `
-    <div class="action-stack">
-      <div class="sticker-card type-timer action-card">
-        <span class="action-icon">${ICONS.clock}</span>
-        <h1>${escapeForDisplay(label)}</h1>
-        <button type="button" id="start-timer-btn" class="btn btn-primary btn-block">
-          <span class="icon">${ICONS.clock}</span>Timer in der Uhr-App starten
-        </button>
-        <p class="field-hint">Falls sich nichts öffnet, ist auf diesem Gerät keine Uhr-App mit Timer-Funktion verfügbar.</p>
-      </div>
-      <div class="sticker-card type-timer action-card">
-        <p class="timer-label">Alternativ: Countdown direkt hier in der Seite</p>
-        <div class="countdown" id="countdown-display">--:--</div>
-        ${notifySupported ? `<button type="button" id="notify-permission-btn" class="btn btn-accent-outline"><span class="icon">${ICONS.bell}</span>Benachrichtigung erlauben</button>` : ""}
-        <p class="field-hint">Dafür bitte diesen Tab bzw. die App offen lassen – im Hintergrund kann das Handy den Countdown pausieren.</p>
-      </div>
+    <div class="sticker-card type-timer action-card">
+      <span class="action-icon">${ICONS.clock}</span>
+      <p class="timer-label">${escapeForDisplay(label)}</p>
+      <div class="countdown" id="countdown-display">--:--</div>
+      ${notifySupported ? `<button type="button" id="notify-permission-btn" class="btn btn-accent-outline"><span class="icon">${ICONS.bell}</span>Benachrichtigung erlauben</button>` : ""}
+      <button type="button" id="cancel-timer-btn" class="btn btn-secondary btn-block">Timer abbrechen</button>
+      <p class="field-hint">Für einen zuverlässigen Alarm auch bei geschlossener App wird die Capacitor-Version benötigt (siehe unten).</p>
     </div>
   `;
-
-  // Der Intent wird ausschließlich über den Klick auf diesen Button ausgelöst -
-  // ein echter Tap ist immer eine gültige Nutzer-Geste. Kein automatischer
-  // Redirect beim Laden mehr (wurde von Chrome teils stillschweigend blockiert).
-  document.getElementById("start-timer-btn").addEventListener("click", () => {
-    window.location.href = intentUrl;
-  });
 
   if (notifySupported && Notification.permission === "default") {
     const btn = document.getElementById("notify-permission-btn");
@@ -80,6 +66,11 @@ function initTimerAction(params) {
   } else if (notifySupported && Notification.permission !== "default") {
     document.getElementById("notify-permission-btn")?.remove();
   }
+
+  document.getElementById("cancel-timer-btn").addEventListener("click", () => {
+    clearInterval(countdownInterval);
+    window.location.href = "index.html";
+  });
 
   startCountdown(seconds, label);
 }
@@ -114,6 +105,7 @@ function onTimerFinished(label) {
   if ("Notification" in window && Notification.permission === "granted") {
     new Notification("Timer abgelaufen", { body: label });
   }
+  document.getElementById("cancel-timer-btn")?.remove();
   const content = document.getElementById("action-content");
   const banner = document.createElement("div");
   banner.className = "banner banner-success";
@@ -166,4 +158,117 @@ function initContactAction(params) {
   if (notify && topic) {
     sendNotification(topic, `Tag gescannt: ${name || "Kontakt-Tag"}`);
   }
+}
+
+/* ---------------- Ankunfts-Check-in ---------------- */
+
+function initCheckinAction(params) {
+  const name = params.get("name") || "";
+  const msg = params.get("msg") || "";
+  const topic = params.get("topic") || "";
+
+  document.getElementById("action-content").innerHTML = `
+    <div class="sticker-card type-checkin action-card">
+      <span class="action-icon">${ICONS.check}</span>
+      <h1>Danke, ${escapeForDisplay(name || "du")} wurde benachrichtigt</h1>
+      ${msg ? `<p>${escapeForDisplay(msg)}</p>` : ""}
+    </div>
+  `;
+
+  if (topic) {
+    sendNotification(topic, msg || `${name || "Jemand"} ist angekommen.`);
+  }
+}
+
+/* ---------------- Navigation/Route ---------------- */
+
+function initRouteAction(params) {
+  const label = params.get("label") || "Route";
+  const dest = params.get("dest") || "";
+  const content = document.getElementById("action-content");
+
+  if (!dest) {
+    content.innerHTML = `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Dieser Tag enthält kein Reiseziel.</span></div>`;
+    return;
+  }
+
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(dest)}`;
+
+  content.innerHTML = `
+    <div class="sticker-card type-route action-card">
+      <span class="action-icon">${ICONS.route}</span>
+      <h1>${escapeForDisplay(label)}</h1>
+      <p>Route wird geöffnet…</p>
+      <a class="btn btn-primary btn-block" href="${mapsUrl}">Route in Google Maps öffnen</a>
+    </div>
+  `;
+
+  // Normale https://-Weiterleitung - anders als bei intent:// gibt es hier
+  // keine Nutzer-Gesten-Einschränkung, ein automatischer Redirect ist sicher.
+  window.location.href = mapsUrl;
+}
+
+/* ---------------- Freier Link ---------------- */
+
+function initLinkAction(params) {
+  const label = params.get("label") || "Link";
+  const url = params.get("url") || "";
+  const content = document.getElementById("action-content");
+
+  if (!url || !isSafeRedirectUrl(url)) {
+    content.innerHTML = `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Dieser Tag enthält kein gültiges Link-Ziel.</span></div>`;
+    return;
+  }
+
+  content.innerHTML = `
+    <div class="sticker-card type-link action-card">
+      <span class="action-icon">${ICONS.link}</span>
+      <h1>${escapeForDisplay(label)}</h1>
+      <p>Wird geöffnet…</p>
+      <a class="btn btn-primary btn-block" href="${escapeForDisplay(url)}">${escapeForDisplay(label)} öffnen</a>
+    </div>
+  `;
+
+  window.location.href = url;
+}
+
+/* ---------------- Checkliste ---------------- */
+
+function initChecklistAction(params) {
+  const label = params.get("label") || "Checkliste";
+  const content = document.getElementById("action-content");
+
+  let items = [];
+  try {
+    const parsed = JSON.parse(params.get("items") || "[]");
+    if (Array.isArray(parsed)) {
+      items = parsed.filter((item) => typeof item === "string" && item.trim().length > 0);
+    }
+  } catch {
+    items = [];
+  }
+
+  if (items.length === 0) {
+    content.innerHTML = `<div class="banner banner-error"><span class="icon">${ICONS.warning}</span><span>Diese Checkliste enthält keine Punkte.</span></div>`;
+    return;
+  }
+
+  const itemsHtml = items
+    .map(
+      (item, i) => `
+      <label class="checklist-item">
+        <input type="checkbox" id="check-item-${i}">
+        <span>${escapeForDisplay(item)}</span>
+      </label>
+    `
+    )
+    .join("");
+
+  content.innerHTML = `
+    <div class="sticker-card type-checklist action-card">
+      <span class="action-icon">${ICONS.checklist}</span>
+      <h1>${escapeForDisplay(label)}</h1>
+      <div class="checklist-items">${itemsHtml}</div>
+    </div>
+  `;
 }

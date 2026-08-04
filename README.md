@@ -32,15 +32,25 @@ Dafür sind in der Regel **zwei kurze Kontakte** mit dem Handy nötig – einmal
 4. Jetzt erscheint das Formular: erst Name/Label eingeben, dann den Typ wählen:
    - **Timer**: zusätzlich die Minuten eingeben.
    - **Kontakt**: zusätzlich Telefonnummer, eine Nachricht sowie optional den Schalter „Mich per Push benachrichtigen, wenn gescannt" aktivieren.
+   - **Check-in**: zusätzlich eine Nachricht eingeben (z.B. „ist zuhause angekommen") – benachrichtigt beim Scannen immer automatisch per Push.
+   - **Route**: zusätzlich eine Zieladresse eingeben – öffnet beim Scannen automatisch Google Maps mit dieser Route.
+   - **Link**: zusätzlich eine Ziel-URL eingeben (muss mit `https://` beginnen) – öffnet beim Scannen automatisch diese Seite (z.B. eine Playlist oder ein Video).
+   - **Checkliste**: zusätzlich beliebig viele Punkte eingeben („+ Punkt hinzufügen") – zeigt beim Scannen eine abhakbare Liste, ohne etwas zu speichern.
 5. Tippe auf **„Fertig – Tag beschreiben"** und halte den Tag noch einmal ans Handy (**zweiter Kontakt**).
 6. Nach erfolgreichem Schreiben landest du wieder im Dashboard – der Tag ist jetzt einsatzbereit.
+
+Direkt über dem Button zeigt die App die geschätzte Größe der Tag-Daten in Byte an. NFC-Tags haben je nach Chip nur wenig Speicher (z.B. NTAG213: 144 Byte) – bei langen Checklisten oder Nachrichten kann das knapp werden. Ab ca. 130 Byte erscheint ein Warnhinweis; das ist nur ein Hinweis, kein hartes Limit.
 
 ## Einen Tag benutzen
 
 Handy (egal ob mit oder ohne diese App installiert) einfach an den beschriebenen Tag halten. Die sich öffnende Seite hat oben immer einen Link „← Zur Übersicht" zurück zum Dashboard.
 
-- **Timer-Tag**: Ein großer Button „Timer in der Uhr-App starten" übergibt den Timer an die native Uhr-App. Falls das Gerät das nicht unterstützt, läuft direkt darunter sichtbar ein Countdown in der Seite selbst mit.
+- **Timer-Tag**: Ein Countdown läuft direkt in der Seite, mit Button „Timer abbrechen". Für einen zuverlässigen Alarm auch bei geschlossener App wird die native Capacitor-Version benötigt (siehe [PHASE2.md](PHASE2.md)) – Web-Technik hat keinen zuverlässigen Weg, einen echten Android-Alarm auszulösen.
 - **Kontakt-Tag**: Es öffnet sich eine Seite mit Name, Nachricht und Buttons zum Anrufen/WhatsApp-Schreiben.
+- **Check-in-Tag**: Verschickt automatisch eine Push-Benachrichtigung und zeigt eine Bestätigung „Danke, [Name] wurde benachrichtigt".
+- **Route-Tag**: Öffnet automatisch Google Maps mit der hinterlegten Zieladresse.
+- **Link-Tag**: Öffnet automatisch die hinterlegte Seite.
+- **Checkliste-Tag**: Zeigt die Punkte als Checkboxen zum Abhaken während des aktuellen Besuchs (nichts wird gespeichert).
 
 Das funktioniert auch auf fremden Handys und sogar auf iPhones – die brauchen dafür kein Web-NFC, das Betriebssystem öffnet einfach die im Tag gespeicherte Adresse im Browser.
 
@@ -66,7 +76,7 @@ Wichtig: Web-NFC liefert nur diese Informationen – **nicht** den genauen Chip-
 
 - Die Liste deiner Tags wird nur lokal auf **diesem** Handy gespeichert (kein Konto, keine Synchronisation zwischen Geräten).
 - Beschreiben von Tags funktioniert nur auf Android mit Chrome/Edge/Samsung Internet. Öffnest du die App am PC oder auf dem iPhone, erscheint stattdessen ein Hinweis.
-- Beim Timer übergibt der Button „Timer in der Uhr-App starten" den Timer an die native Uhr-App (läuft dann zuverlässig weiter, auch wenn der Tab geschlossen wird). Es gibt keinen automatischen Redirect beim Laden mehr, da Chrome das teils stillschweigend blockiert hat – der Tap auf den Button ist eine echte Nutzer-Geste und funktioniert zuverlässig. Der In-Page-Countdown darunter läuft als Alternative direkt mit, dafür muss die Seite dann aber geöffnet bleiben.
+- Der Timer ist bewusst ein ehrlicher In-Page-Countdown, kein Trick über einen Android-Intent-Link – solche automatischen oder Klick-ausgelösten Weiterleitungen an die native Uhr-App hat Chrome in der Praxis zu inkonsistent behandelt (teils stillschweigend blockiert). Die Seite muss dafür offen bleiben, lässt sich aber jederzeit über „Timer abbrechen" sauber verlassen.
 
 ## Für Entwickler: lokal testen
 
@@ -81,3 +91,7 @@ oder ein beliebiger anderer statischer Webserver im Projektordner. NFC-Funktione
 1. Repo-Inhalt auf GitHub pushen.
 2. Repo-Einstellungen → Pages → Branch auswählen, unter dem die Dateien liegen.
 3. Die Seite ist danach unter `https://<username>.github.io/<repo>/` erreichbar.
+
+## Phase 2 (optional): native Android-App
+
+Für einen zuverlässigen, auch bei geschlossener App abbrechbaren Timer-Alarm siehe [PHASE2.md](PHASE2.md) – braucht ein lokal installiertes Android Studio/SDK und ist erst sinnvoll, wenn Phase 1 fertig getestet ist.

@@ -1,4 +1,4 @@
-const CACHE_NAME = "nfc-aktionen-v5";
+const CACHE_NAME = "nfc-aktionen-v6";
 const PRECACHE_URLS = [
   "./",
   "./index.html",

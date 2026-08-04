@@ -44,13 +44,44 @@ function randomId(prefix) {
 const TYPE_META = {
   timer: { icon: "clock", label: "Timer" },
   contact: { icon: "contact", label: "Kontakt" },
+  checkin: { icon: "check", label: "Check-in" },
+  route: { icon: "route", label: "Route" },
+  link: { icon: "link", label: "Link" },
+  checklist: { icon: "checklist", label: "Checkliste" },
 };
 
 function tagMetaText(tag) {
-  if (tag.type === "timer") {
-    return `Timer · ${tag.minutes} min`;
+  switch (tag.type) {
+    case "timer":
+      return `Timer · ${tag.minutes} min`;
+    case "contact":
+      return `Kontakt · ${tag.notify ? "Push aktiv" : "Kein Push"}`;
+    case "checkin":
+      return "Check-in · Benachrichtigung";
+    case "route":
+      return `Route · ${truncateText(tag.dest, 28)}`;
+    case "link":
+      return `Link · ${hostnameOf(tag.url)}`;
+    case "checklist":
+      return `Checkliste · ${tag.items.length} Punkt${tag.items.length === 1 ? "" : "e"}`;
+    default:
+      return tag.type;
   }
-  return `Kontakt · ${tag.notify ? "Push aktiv" : "Kein Push"}`;
+}
+
+function truncateText(text, max) {
+  if (!text) {
+    return "";
+  }
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+function hostnameOf(url) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
 }
 
 /* =========================================================
@@ -76,10 +107,41 @@ function buildTagUrl(config) {
       params.set("notify", "1");
       params.set("topic", config.topic);
     }
+  } else if (config.type === "checkin") {
+    params.set("name", config.name);
+    params.set("msg", config.msg || "");
+    params.set("topic", config.topic);
+  } else if (config.type === "route") {
+    params.set("label", config.label);
+    params.set("dest", config.dest);
+  } else if (config.type === "link") {
+    params.set("label", config.label);
+    params.set("url", config.url);
+  } else if (config.type === "checklist") {
+    params.set("label", config.label);
+    params.set("items", JSON.stringify(config.items));
   }
 
   base.search = params.toString();
   return base.toString();
+}
+
+/* Grobe Näherung der Byte-Größe einer URL als NDEF-URL-Record - gleiche
+   Formel wie estimateNdefMessageSize, nur direkt auf dem URL-String. */
+function estimateTagUrlSize(url) {
+  const payloadLen = new TextEncoder().encode(url).length;
+  return payloadLen + "url".length + 4;
+}
+
+/* Verhindert, dass ein manipulierter/fremder Tag mit z.B. einer
+   javascript:-URL im "link"-Typ zu einer automatischen Codeausführung
+   führt - nur https:// wird als Redirect-Ziel akzeptiert. */
+function isSafeRedirectUrl(url) {
+  try {
+    return new URL(url).protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 /* =========================================================

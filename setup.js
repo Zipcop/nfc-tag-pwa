@@ -6,6 +6,15 @@ let scannedSerial = null;
 let scannedRecords = [];
 let activeScanController = null;
 
+const TAG_TYPES = [
+  { value: "timer", icon: "clock", label: "Timer" },
+  { value: "contact", icon: "contact", label: "Kontakt" },
+  { value: "checkin", icon: "check", label: "Check-in" },
+  { value: "route", icon: "route", label: "Route" },
+  { value: "link", icon: "link", label: "Link" },
+  { value: "checklist", icon: "checklist", label: "Checkliste" },
+];
+
 function initSetup() {
   const params = new URLSearchParams(window.location.search);
   const editId = params.get("edit");
@@ -127,62 +136,104 @@ function existingContentBanner() {
 }
 
 /* =========================================================
-   Schritt 2a (create): Formular - erst Name/Label, dann Typ.
+   Gemeinsames Formular für "Neuen Tag einrichten" und "Bearbeiten" -
+   erst Name/Label, dann Typ, dann die typ-spezifischen Felder.
    ========================================================= */
 
-function renderCreateForm() {
+function typeChoiceHtml(defaultValue) {
+  return TAG_TYPES.map(
+    (t) => `
+      <label>
+        <input type="radio" name="tagType" value="${t.value}" ${t.value === defaultValue ? "checked" : ""}>
+        <span class="type-icon" data-icon="${t.icon}"></span>
+        <span>${t.label}</span>
+      </label>
+    `
+  ).join("");
+}
+
+function typeFieldsHtml() {
+  return `
+    <fieldset id="timer-fields">
+      <label for="field-minutes">Minuten</label>
+      <input type="number" id="field-minutes" min="1" step="1" placeholder="z.B. 90">
+    </fieldset>
+
+    <fieldset id="contact-fields" hidden>
+      <label for="field-tel">Telefonnummer</label>
+      <input type="tel" id="field-tel" placeholder="z.B. +49 151 23456789" pattern="^\\+?[0-9\\s\\-/]{6,20}$">
+
+      <label for="field-msg">Nachricht beim Scan</label>
+      <textarea id="field-msg" placeholder="z.B. Bitte melde dich, wenn du diesen Schlüssel findest!"></textarea>
+
+      <div class="switch-row">
+        <label for="field-notify">Mich per Push benachrichtigen, wenn gescannt</label>
+        <input type="checkbox" id="field-notify">
+      </div>
+      <p id="notify-hint" class="field-hint" hidden>
+        Du wirst per ntfy.sh benachrichtigt. Installiere dafür kostenlos die ntfy-App und abonniere das Thema, das nach dem Speichern angezeigt wird.
+      </p>
+    </fieldset>
+
+    <fieldset id="checkin-fields" hidden>
+      <label for="field-checkin-msg">Nachricht beim Scan</label>
+      <textarea id="field-checkin-msg" placeholder="z.B. ist zuhause angekommen"></textarea>
+      <p class="field-hint">Beim Scannen wird automatisch eine Push-Benachrichtigung verschickt (per ntfy.sh). Das zugehörige Thema zeigt die App nach dem Schreiben an.</p>
+    </fieldset>
+
+    <fieldset id="route-fields" hidden>
+      <label for="field-dest">Zieladresse</label>
+      <input type="text" id="field-dest" placeholder="z.B. Musterstraße 1, 12345 Musterstadt">
+    </fieldset>
+
+    <fieldset id="link-fields" hidden>
+      <label for="field-link-url">Ziel-URL</label>
+      <input type="url" id="field-link-url" placeholder="https://…" pattern="https://.*">
+      <p class="field-hint">Muss mit https:// beginnen.</p>
+    </fieldset>
+
+    <fieldset id="checklist-fields" hidden>
+      <label>Punkte</label>
+      <div id="checklist-items-editor"></div>
+      <button type="button" id="add-checklist-item-btn" class="btn btn-secondary">+ Punkt hinzufügen</button>
+    </fieldset>
+  `;
+}
+
+function renderTagForm({ prefillTag, submitLabel, hintText, onSubmit, showWriteExtras }) {
   document.getElementById("setup-flow").innerHTML = `
-    ${existingContentBanner()}
+    ${showWriteExtras ? existingContentBanner() : ""}
     <form id="tag-form" class="surface-card" novalidate>
       <label for="field-label">Name / Label</label>
       <input type="text" id="field-label" placeholder="z.B. Waschmaschine oder Schlüssel von Lena" required>
 
       <fieldset>
         <label>Typ</label>
-        <div class="type-choice">
-          <label>
-            <input type="radio" name="tagType" value="timer" checked>
-            <span class="type-icon" data-icon="clock"></span>
-            <span>Timer</span>
-          </label>
-          <label>
-            <input type="radio" name="tagType" value="contact">
-            <span class="type-icon" data-icon="contact"></span>
-            <span>Kontakt</span>
-          </label>
-        </div>
+        <div class="type-choice">${typeChoiceHtml(prefillTag ? prefillTag.type : "timer")}</div>
       </fieldset>
 
-      <fieldset id="timer-fields">
-        <label for="field-minutes">Minuten</label>
-        <input type="number" id="field-minutes" min="1" step="1" placeholder="z.B. 90" required>
-      </fieldset>
+      ${typeFieldsHtml()}
 
-      <fieldset id="contact-fields" hidden>
-        <label for="field-tel">Telefonnummer</label>
-        <input type="tel" id="field-tel" placeholder="z.B. +49 151 23456789">
-
-        <label for="field-msg">Nachricht beim Scan</label>
-        <textarea id="field-msg" placeholder="z.B. Bitte melde dich, wenn du diesen Schlüssel findest!"></textarea>
-
-        <div class="switch-row">
-          <label for="field-notify">Mich per Push benachrichtigen, wenn gescannt</label>
-          <input type="checkbox" id="field-notify">
-        </div>
-        <p id="notify-hint" class="field-hint" hidden>
-          Du wirst per ntfy.sh benachrichtigt. Installiere dafür kostenlos die ntfy-App und abonniere das Thema, das nach dem Schreiben angezeigt wird.
-        </p>
-      </fieldset>
-
-      <button type="submit" id="submit-btn" class="btn btn-primary btn-block">Fertig – Tag beschreiben</button>
-      <p class="field-hint">Dafür bitte den Tag gleich noch einmal ans Handy halten.</p>
-      <div id="write-status"></div>
+      <button type="submit" id="submit-btn" class="btn btn-primary btn-block">${submitLabel}</button>
+      <p class="field-hint">${hintText}</p>
+      ${showWriteExtras ? '<p id="size-preview" class="size-preview"></p><div id="write-status"></div>' : ""}
     </form>
   `;
   hydrateIcons(document.getElementById("setup-flow"));
 
   setupTypeToggle();
-  document.getElementById("tag-form").addEventListener("submit", handleCreateSubmit);
+  setupChecklistEditor(prefillTag && prefillTag.type === "checklist" ? prefillTag.items : [""]);
+
+  if (prefillTag) {
+    fillFormFromTag(prefillTag);
+  }
+
+  document.getElementById("tag-form").addEventListener("submit", onSubmit);
+
+  if (showWriteExtras) {
+    document.getElementById("tag-form").addEventListener("input", updateSizePreview);
+    updateSizePreview();
+  }
 
   const notifyCheckbox = document.getElementById("field-notify");
   notifyCheckbox.addEventListener("change", () => {
@@ -202,55 +253,161 @@ function updateTypeFields() {
   const selected = document.querySelector('input[name="tagType"]:checked');
   const type = selected ? selected.value : null;
 
-  document.getElementById("timer-fields").hidden = type !== "timer";
-  document.getElementById("contact-fields").hidden = type !== "contact";
+  TAG_TYPES.forEach((t) => {
+    document.getElementById(`${t.value}-fields`).hidden = t.value !== type;
+  });
 
   document.getElementById("field-minutes").required = type === "timer";
-  document.getElementById("field-tel").required = type === "contact";
+  document.getElementById("field-dest").required = type === "route";
+  document.getElementById("field-link-url").required = type === "link";
 }
 
-function collectCreateFormData() {
+/* ---------------- Checkliste: dynamische Punkte-Liste ---------------- */
+
+function setupChecklistEditor(initialItems) {
+  const editor = document.getElementById("checklist-items-editor");
+  editor.innerHTML = "";
+  (initialItems && initialItems.length ? initialItems : [""]).forEach(addChecklistItemRow);
+
+  document.getElementById("add-checklist-item-btn").addEventListener("click", () => {
+    addChecklistItemRow("");
+    updateSizePreview();
+  });
+}
+
+function addChecklistItemRow(value) {
+  const editor = document.getElementById("checklist-items-editor");
+  const row = document.createElement("div");
+  row.className = "checklist-editor-row";
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "checklist-item-input";
+  input.placeholder = "z.B. Herd aus?";
+  input.value = value || "";
+
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "checklist-item-remove";
+  removeBtn.setAttribute("aria-label", "Punkt entfernen");
+  removeBtn.innerHTML = `<span class="icon">${ICONS.close}</span>`;
+  removeBtn.addEventListener("click", () => {
+    if (document.querySelectorAll(".checklist-item-input").length > 1) {
+      row.remove();
+      updateSizePreview();
+    }
+  });
+
+  row.append(input, removeBtn);
+  editor.appendChild(row);
+}
+
+/* ---------------- Geschätzte Tag-Größe ---------------- */
+
+function updateSizePreview() {
+  const preview = document.getElementById("size-preview");
+  if (!preview) {
+    return;
+  }
+  const config = collectFormData(null);
+  const url = buildTagUrl(config);
+  const size = estimateTagUrlSize(url);
+  const isWarning = size > 130;
+
+  preview.classList.toggle("size-warning", isWarning);
+  preview.textContent = isWarning
+    ? `Geschätzte Größe: ca. ${size} Byte – das könnte für günstige Tags zu groß sein.`
+    : `Geschätzte Größe: ca. ${size} Byte`;
+}
+
+/* ---------------- Formulardaten einsammeln ---------------- */
+
+function collectFormData(existingTag) {
   const type = document.querySelector('input[name="tagType"]:checked').value;
   const label = document.getElementById("field-label").value.trim();
-  const id = randomId(type);
-  const createdAt = new Date().toISOString();
+  const id = existingTag ? existingTag.id : randomId(type);
+  const createdAt = existingTag ? existingTag.createdAt : new Date().toISOString();
+  const base = { id, type, label, createdAt };
 
   if (type === "timer") {
+    return { ...base, minutes: Number(document.getElementById("field-minutes").value) || 0 };
+  }
+
+  if (type === "contact") {
+    const notify = document.getElementById("field-notify").checked;
     return {
-      id,
-      type,
-      label,
-      minutes: Number(document.getElementById("field-minutes").value),
-      createdAt,
+      ...base,
+      name: label,
+      tel: document.getElementById("field-tel").value.trim(),
+      msg: document.getElementById("field-msg").value.trim(),
+      notify,
+      topic: notify ? (existingTag && existingTag.topic) || randomId("nfc") : null,
     };
   }
 
-  const notify = document.getElementById("field-notify").checked;
-  return {
-    id,
-    type,
-    label,
-    name: label,
-    tel: document.getElementById("field-tel").value.trim(),
-    msg: document.getElementById("field-msg").value.trim(),
-    notify,
-    topic: notify ? randomId("nfc") : null,
-    createdAt,
-  };
+  if (type === "checkin") {
+    return {
+      ...base,
+      name: label,
+      msg: document.getElementById("field-checkin-msg").value.trim(),
+      topic: (existingTag && existingTag.topic) || randomId("nfc"),
+    };
+  }
+
+  if (type === "route") {
+    return { ...base, dest: document.getElementById("field-dest").value.trim() };
+  }
+
+  if (type === "link") {
+    return { ...base, url: document.getElementById("field-link-url").value.trim() };
+  }
+
+  // checklist
+  const items = Array.from(document.querySelectorAll(".checklist-item-input"))
+    .map((input) => input.value.trim())
+    .filter((v) => v.length > 0);
+  return { ...base, items };
+}
+
+function validateForm() {
+  const form = document.getElementById("tag-form");
+  if (!form.reportValidity()) {
+    return false;
+  }
+  const type = document.querySelector('input[name="tagType"]:checked').value;
+  if (type === "checklist") {
+    const hasItem = Array.from(document.querySelectorAll(".checklist-item-input")).some(
+      (input) => input.value.trim().length > 0
+    );
+    if (!hasItem) {
+      alert("Bitte mindestens einen Punkt eingeben.");
+      return false;
+    }
+  }
+  return true;
+}
+
+/* =========================================================
+   Neuen Tag einrichten: Formular -> Fertig, Tag beschreiben.
+   ========================================================= */
+
+function renderCreateForm() {
+  renderTagForm({
+    prefillTag: null,
+    submitLabel: "Fertig – Tag beschreiben",
+    hintText: "Dafür bitte den Tag gleich noch einmal ans Handy halten.",
+    onSubmit: handleCreateSubmit,
+    showWriteExtras: true,
+  });
 }
 
 async function handleCreateSubmit(event) {
   event.preventDefault();
-
-  const telField = document.getElementById("field-tel");
-  if (telField.required && !isValidPhone(telField.value)) {
-    telField.setCustomValidity("Bitte eine gültige Telefonnummer eingeben (z.B. +49 151 23456789).");
-    telField.reportValidity();
+  if (!validateForm()) {
     return;
   }
-  telField.setCustomValidity("");
 
-  const config = collectCreateFormData();
+  const config = collectFormData(null);
   const url = buildTagUrl(config);
   const statusEl = document.getElementById("write-status");
   const submitBtn = document.getElementById("submit-btn");
@@ -276,20 +433,30 @@ async function handleCreateSubmit(event) {
 }
 
 /* =========================================================
-   Schritt 2b (rewrite): Konfiguration steht schon fest,
+   Erneut auf Tag schreiben: Konfiguration steht schon fest,
    nur noch bestätigen und schreiben.
    ========================================================= */
 
 function renderRewriteConfirm() {
   const tag = currentEditTag;
+  const url = buildTagUrl(tag);
+  const size = estimateTagUrlSize(url);
+  const isWarning = size > 130;
+  const meta = TYPE_META[tag.type] || { icon: "contact" };
+
   document.getElementById("setup-flow").innerHTML = `
     ${existingContentBanner()}
     <div class="sticker-card type-${tag.type} action-card">
-      <span class="action-icon">${ICONS[tag.type === "timer" ? "clock" : "contact"]}</span>
+      <span class="action-icon">${ICONS[meta.icon] || ""}</span>
       <h2>${escapeForDisplay(tag.label)}</h2>
       <p>${escapeForDisplay(tagMetaText(tag))}</p>
       <button type="button" id="write-btn" class="btn btn-primary btn-block">Fertig – Tag beschreiben</button>
       <p class="field-hint">Bitte den Tag noch einmal (oder weiterhin) ans Handy halten.</p>
+      <p class="size-preview${isWarning ? " size-warning" : ""}">${
+        isWarning
+          ? `Geschätzte Größe: ca. ${size} Byte – das könnte für günstige Tags zu groß sein.`
+          : `Geschätzte Größe: ca. ${size} Byte`
+      }</p>
       <div id="write-status"></div>
     </div>
   `;
@@ -326,116 +493,45 @@ async function performRewriteWrite(tag) {
    ========================================================= */
 
 function renderEditForm() {
-  const tag = currentEditTag;
-  document.getElementById("setup-flow").innerHTML = `
-    <form id="tag-form" class="surface-card" novalidate>
-      <label for="field-label">Name / Label</label>
-      <input type="text" id="field-label" required>
-
-      <fieldset>
-        <label>Typ</label>
-        <div class="type-choice">
-          <label>
-            <input type="radio" name="tagType" value="timer">
-            <span class="type-icon" data-icon="clock"></span>
-            <span>Timer</span>
-          </label>
-          <label>
-            <input type="radio" name="tagType" value="contact">
-            <span class="type-icon" data-icon="contact"></span>
-            <span>Kontakt</span>
-          </label>
-        </div>
-      </fieldset>
-
-      <fieldset id="timer-fields">
-        <label for="field-minutes">Minuten</label>
-        <input type="number" id="field-minutes" min="1" step="1" required>
-      </fieldset>
-
-      <fieldset id="contact-fields" hidden>
-        <label for="field-tel">Telefonnummer</label>
-        <input type="tel" id="field-tel">
-
-        <label for="field-msg">Nachricht beim Scan</label>
-        <textarea id="field-msg"></textarea>
-
-        <div class="switch-row">
-          <label for="field-notify">Mich per Push benachrichtigen, wenn gescannt</label>
-          <input type="checkbox" id="field-notify">
-        </div>
-        <p id="notify-hint" class="field-hint" hidden>
-          Du wirst per ntfy.sh benachrichtigt. Installiere dafür kostenlos die ntfy-App und abonniere das Thema, das nach dem Speichern angezeigt wird.
-        </p>
-      </fieldset>
-
-      <button type="submit" id="submit-btn" class="btn btn-primary btn-block">Speichern</button>
-      <p class="field-hint">Die Änderungen werden nur gespeichert – der physische Tag wird dabei nicht angefasst. Nutze im Dashboard „Erneut auf Tag schreiben", um sie zu übertragen.</p>
-    </form>
-  `;
-  hydrateIcons(document.getElementById("setup-flow"));
-
-  fillFormFromTag(tag);
-  setupTypeToggle();
-  document.getElementById("tag-form").addEventListener("submit", handleEditSubmit);
-
-  const notifyCheckbox = document.getElementById("field-notify");
-  notifyCheckbox.addEventListener("change", () => {
-    document.getElementById("notify-hint").hidden = !notifyCheckbox.checked;
+  renderTagForm({
+    prefillTag: currentEditTag,
+    submitLabel: "Speichern",
+    hintText:
+      'Die Änderungen werden nur gespeichert – der physische Tag wird dabei nicht angefasst. Nutze im Dashboard „Erneut auf Tag schreiben", um sie zu übertragen.',
+    onSubmit: handleEditSubmit,
+    showWriteExtras: false,
   });
 }
 
 function fillFormFromTag(tag) {
   document.getElementById("field-label").value = tag.label;
-  const radio = document.querySelector(`input[name="tagType"][value="${tag.type}"]`);
-  if (radio) {
-    radio.checked = true;
-  }
+
   if (tag.type === "timer") {
     document.getElementById("field-minutes").value = tag.minutes;
-  } else {
+  } else if (tag.type === "contact") {
     document.getElementById("field-tel").value = tag.tel;
     document.getElementById("field-msg").value = tag.msg || "";
     document.getElementById("field-notify").checked = !!tag.notify;
     document.getElementById("notify-hint").hidden = !tag.notify;
+  } else if (tag.type === "checkin") {
+    document.getElementById("field-checkin-msg").value = tag.msg || "";
+  } else if (tag.type === "route") {
+    document.getElementById("field-dest").value = tag.dest;
+  } else if (tag.type === "link") {
+    document.getElementById("field-link-url").value = tag.url;
   }
+  // Checkliste: Punkte werden bereits über setupChecklistEditor() befüllt.
+
   updateTypeFields();
 }
 
 function handleEditSubmit(event) {
   event.preventDefault();
-
-  const telField = document.getElementById("field-tel");
-  if (telField.required && !isValidPhone(telField.value)) {
-    telField.setCustomValidity("Bitte eine gültige Telefonnummer eingeben (z.B. +49 151 23456789).");
-    telField.reportValidity();
+  if (!validateForm()) {
     return;
   }
-  telField.setCustomValidity("");
 
-  const type = document.querySelector('input[name="tagType"]:checked').value;
-  const label = document.getElementById("field-label").value.trim();
-  const updated = { id: currentEditTag.id, type, label, createdAt: currentEditTag.createdAt };
-
-  if (type === "timer") {
-    updated.minutes = Number(document.getElementById("field-minutes").value);
-  } else {
-    const notify = document.getElementById("field-notify").checked;
-    updated.name = label;
-    updated.tel = document.getElementById("field-tel").value.trim();
-    updated.msg = document.getElementById("field-msg").value.trim();
-    updated.notify = notify;
-    updated.topic = notify ? currentEditTag.topic || randomId("nfc") : null;
-  }
-
+  const updated = collectFormData(currentEditTag);
   saveTag(updated);
   window.location.href = "index.html";
-}
-
-/* =========================================================
-   Gemeinsames
-   ========================================================= */
-
-function isValidPhone(value) {
-  return /^\+?[0-9\s\-/]{6,20}$/.test(value.trim());
 }
