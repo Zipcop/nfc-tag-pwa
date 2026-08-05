@@ -317,7 +317,24 @@ function nativeScanTagOnce(signal) {
    das native Tag-Objekt ist dann bereits ungültig und write() schlägt mit
    "Tag connection lost" (IllegalStateException) fehl, obwohl der aktuell
    aufgelegte Tag nie tatsächlich angesprochen wurde. Deshalb: immer erst
-   auf ein frisches nfcEvent warten, dann erst schreiben. */
+   auf ein frisches nfcEvent warten, dann erst schreiben.
+
+   Zusätzlich liest das Plugin bei JEDER Tag-Erkennung zuerst den
+   vorhandenen NDEF-Inhalt (u.a. seitenweise über MifareUltralight, bevor
+   überhaupt das nfcEvent feuert) - bei Tags mit bereits vorhandenem
+   Inhalt (z.B. von früheren Testschreibvorgängen) dauert das spürbar
+   länger und kollidiert dabei gelegentlich mit dem alle 100ms laufenden
+   Presence-Check des Reader-Mode, was genau dieses "Tag connection lost"
+   auslöst - unabhängig von Auflegedauer/-festigkeit. Da der physische Tag
+   dabei nie wirklich außer Reichweite war, reicht ein kurzer erneuter
+   write()-Versuch auf demselben Tag-Objekt, ohne neu aufzulegen. */
+const WRITE_RETRY_ATTEMPTS = 3;
+const WRITE_RETRY_DELAY_MS = 250;
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function nativeWriteTag(url) {
   const { CapacitorNfc } = nativePlugins();
   return new Promise((resolve, reject) => {
@@ -331,13 +348,30 @@ function nativeWriteTag(url) {
       }
     }
 
+    async function writeWithRetry() {
+      const record = buildNdefUriRecord(url);
+      let lastErr;
+      for (let attempt = 1; attempt <= WRITE_RETRY_ATTEMPTS; attempt++) {
+        try {
+          await CapacitorNfc.write({ records: [record] });
+          return;
+        } catch (err) {
+          lastErr = err;
+          if (attempt < WRITE_RETRY_ATTEMPTS) {
+            await delay(WRITE_RETRY_DELAY_MS);
+          }
+        }
+      }
+      throw lastErr;
+    }
+
     Promise.resolve(
       CapacitorNfc.addListener("nfcEvent", () => {
         if (settled) {
           return;
         }
         settled = true;
-        CapacitorNfc.write({ records: [buildNdefUriRecord(url)] })
+        writeWithRetry()
           .then(() => {
             cleanup();
             resolve();
