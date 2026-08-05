@@ -310,12 +310,52 @@ function nativeScanTagOnce(signal) {
   });
 }
 
-async function nativeWriteTag(url) {
+/* write() im Plugin schreibt auf "das zuletzt erkannte Tag" (eine intern
+   gecachte Referenz). Wird write() aufgerufen, ohne vorher auf eine FRISCHE
+   Tag-Erkennung in dieser Sitzung zu warten, kann diese Referenz noch von
+   einer früheren Scan-Sitzung stammen (z.B. "Tag-Infos anzeigen" davor) -
+   das native Tag-Objekt ist dann bereits ungültig und write() schlägt mit
+   "Tag connection lost" (IllegalStateException) fehl, obwohl der aktuell
+   aufgelegte Tag nie tatsächlich angesprochen wurde. Deshalb: immer erst
+   auf ein frisches nfcEvent warten, dann erst schreiben. */
+function nativeWriteTag(url) {
   const { CapacitorNfc } = nativePlugins();
-  await CapacitorNfc.startScanning();
-  try {
-    await CapacitorNfc.write({ records: [buildNdefUriRecord(url)] });
-  } finally {
-    await CapacitorNfc.stopScanning().catch(() => {});
-  }
+  return new Promise((resolve, reject) => {
+    let listenerHandle = null;
+    let settled = false;
+
+    function cleanup() {
+      CapacitorNfc.stopScanning().catch(() => {});
+      if (listenerHandle) {
+        listenerHandle.remove();
+      }
+    }
+
+    Promise.resolve(
+      CapacitorNfc.addListener("nfcEvent", () => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        CapacitorNfc.write({ records: [buildNdefUriRecord(url)] })
+          .then(() => {
+            cleanup();
+            resolve();
+          })
+          .catch((err) => {
+            cleanup();
+            reject(err);
+          });
+      })
+    ).then((handle) => {
+      listenerHandle = handle;
+    });
+
+    CapacitorNfc.startScanning().catch((err) => {
+      if (!settled) {
+        settled = true;
+        reject(err);
+      }
+    });
+  });
 }
