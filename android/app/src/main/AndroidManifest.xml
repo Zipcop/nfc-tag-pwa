@@ -34,6 +34,17 @@
                 <data android:scheme="nfcaktionen" />
             </intent-filter>
 
+            <!-- Ohne diesen Filter dispatcht Android einen NFC-Scan NICHT
+                 direkt an die App, sondern zeigt den System-Zwischenbildschirm
+                 "Neues Tag erkannt" mit Auswahlliste - NDEF_DISCOVERED ist die
+                 Aktion, die Android beim Tag-Scan tatsächlich verwendet
+                 (ACTION_VIEW allein reicht dafür nicht). -->
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="nfcaktionen" />
+            </intent-filter>
+
         </activity>
 
         <provider
