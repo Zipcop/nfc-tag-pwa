@@ -36,27 +36,15 @@ Capacitor übernimmt den kompletten HTML/CSS/JS-Code aus Phase 1 praktisch unver
 3. Bestehende Web-Dateien aus Phase 1 unverändert in den `www/`-Ordner übernehmen
 4. `npx cap add android` → generiert das native Android-Studio-Projekt
 5. Plugins installieren:
-   - `@capacitor/local-notifications` (für den zuverlässigen Timer)
    - Ein **frei nutzbares** NFC-Community-Plugin, z.B. `@capgo/capacitor-nfc` oder `Exxili/capacitor-nfc` (nicht das Capawesome-Plugin verwenden – das läuft aktuell nach einem kostenpflichtigen Sponsorware-Modell)
 6. `npx cap sync`
 7. Build über Android Studio GUI oder headless via `./gradlew assembleRelease` (braucht einmalig einen Signierschlüssel/Keystore)
 
-## Zuverlässiger Hintergrund-Timer
+## Timer (Android-Uhr-App statt eigenem Alarm)
 
-- Alarme über `LocalNotifications.schedule()` planen (nutzt intern Androids AlarmManager).
-- In `AndroidManifest.xml` die Berechtigung `SCHEDULE_EXACT_ALARM` ergänzen (ab Android 12 nötig für exakte Alarmzeiten).
-- Option `allowWhileIdle: true` setzen, damit der Alarm auch im Doze-Stromsparmodus feuert (maximal alle 9 Minuten pro App, das reicht für unseren Anwendungsfall).
-- Beim App-Start per `checkExactNotificationSetting()` prüfen, ob exakte Alarme noch erlaubt sind, und die Nutzerin andernfalls im UI freundlich darauf hinweisen.
-- **Wichtiger Hinweis, der in die README/Anleitung für die Nutzerin muss:** Auf Samsung-Handys (One UI) muss die App einmalig manuell von der Akku-Optimierung ausgenommen werden (Einstellungen → Akku → „Nie schlafende Apps" bzw. „nicht optimieren"). Sonst kann Samsungs eigene Akku-Verwaltung selbst einen nativen Alarm irgendwann unterdrücken.
+**Ursprünglich umgesetzt über `@capacitor/local-notifications`** (eigener Alarm via `LocalNotifications.schedule()`, abbrechbare "Laufende Timer"-Liste im Dashboard) - **inzwischen ersetzt**: Timer-Tags übergeben den Timer stattdessen per `AlarmClock.ACTION_SET_TIMER`-Intent an die installierte System-Uhr-App (z.B. Google Clock), die ihn mit eigenem Countdown/Sound/Vibration ausführt und in den Quick Settings anzeigt. Umgesetzt in einem eigenen kleinen Capacitor-Plugin (`SystemTimerPlugin.java`, registriert in `MainActivity.java`), JS-seitig `native.js`/`startSystemTimer()`.
 
-### Ergänzung: abbrechbare, im Dashboard sichtbare Timer
-
-- Beim Stellen eines Timers die von `LocalNotifications.schedule()` zurückgegebene Notification-ID zusammen mit Label und Ziel-Zeitpunkt (Datum/Uhrzeit, zu dem der Alarm feuert) in `localStorage` speichern – separat von der Tag-Konfigurationsliste, da ein laufender Timer ein transienter Zustand ist, keine dauerhafte Einstellung.
-- Im Dashboard einen Bereich „Laufende Timer" einblenden, der alle aktiven Timer mit Restzeit anzeigt (nur sichtbar, wenn mindestens einer läuft).
-- Pro laufendem Timer einen Button „Abbrechen":
-  1. `LocalNotifications.cancel({ notifications: [{ id }] })` aufrufen, um den geplanten nativen Alarm zu löschen.
-  2. Danach den zugehörigen `localStorage`-Eintrag aus der Liste der laufenden Timer entfernen.
-- Nach Ablauf eines Timers (Notification wurde zugestellt) den `localStorage`-Eintrag ebenfalls automatisch entfernen (z.B. beim nächsten App-Start per Abgleich Ziel-Zeitpunkt < jetzt).
+**Bewusster Trade-off:** kein Abbrechen mehr über das Dashboard dieser App möglich, nur noch über die Uhr-App selbst - dafür kein eigenes `LocalNotifications`-Plugin, keine `SCHEDULE_EXACT_ALARM`-Berechtigung und keine Samsung-Akkuoptimierungs-Sonderbehandlung mehr nötig (beides wieder aus Manifest/`package.json` entfernt).
 
 ## Natives NFC
 
@@ -90,8 +78,7 @@ Phase 1 nutzt Web Push über den separaten [nfc-push-worker](../nfc-push-worker)
 
 ## Qualitätssicherung Phase 2
 
-- Testen: Timer stellen, App vollständig aus der Übersicht schließen, warten – prüfen, ob der Alarm trotzdem kommt.
-- Testen: Timer stellen, im Dashboard „Laufende Timer" öffnen, „Abbrechen" tippen – prüfen, dass der Alarm wirklich nicht mehr kommt und der Eintrag aus der Liste verschwindet.
-- Testen: Tag mit dem eigenen Handy (mit installierter App) scannen → sollte die App öffnen, nicht den Browser.
-- Testen: Tag mit einem Handy ohne installierte App scannen → sollte weiterhin ganz normal im Browser öffnen.
+- Testen: Timer-Tag scannen → Timer sollte in der System-Uhr-App laufen (Countdown/Sound/Vibration dort, nicht in dieser App).
+- Testen: Tag mit dem eigenen Handy (mit installierter App) scannen → sollte direkt die App öffnen, ohne Zwischenbildschirm.
+- Testen: Contact-/Checkin-Tag scannen → Benachrichtigung sollte nur beim Handy ankommen, das den Tag ursprünglich beschrieben hat (Owner-ID-Scoping, siehe nfc-push-worker).
 - README um den Akku-Optimierungs-Hinweis sowie eine kurze Beschreibung des Build-Vorgangs (Android Studio nötig) ergänzen.

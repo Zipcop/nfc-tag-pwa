@@ -61,7 +61,4 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-
-    <!-- Für zuverlässige Timer-Alarme auch bei Doze/Akkuoptimierung (ab Android 12 nötig) -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 </manifest>

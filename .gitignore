@@ -10,3 +10,8 @@ android/.idea/
 android/captures/
 android/*.iml
 android/app/*.iml
+
+# Release-Signierschlüssel - niemals committen, unwiederbringlich wenn verloren
+android/keystore.properties
+android/app/*.keystore
+android/app/*.jks
