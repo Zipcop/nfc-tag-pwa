@@ -21,7 +21,9 @@
 
 **Wichtig für bereits vorhandene Test-Tags:** Ein physischer Tag behält seinen bisherigen `https://`-Inhalt, bis er aktiv neu beschrieben wird (z.B. über "Erneut auf Tag schreiben" in der App) - das Umstellen des Schemas wirkt sich nicht rückwirkend auf schon beschriebene Tags aus.
 
-**Noch offen:** Test auf echtem Gerät (Samsung Galaxy A55) für die native NFC-Funktion inkl. des neuen Schemas (im Emulator mangels NFC-Hardware nur simuliert testbar), App-Signierung für ein Release-APK.
+**"Tag connection lost" beim nativen Schreiben – Ursache gefunden und behoben:** Das NFC-Plugin (`@capgo/capacitor-nfc`) liest bei jeder Tag-Erkennung automatisch erst den vorhandenen NDEF-Inhalt (u.a. seitenweise über `MifareUltralight`), bevor es das `nfcEvent` an die App meldet. Bei Tags mit bereits vorhandenem Inhalt (z.B. von früheren Testschreibvorgängen) dauert dieses Vorab-Lesen spürbar länger, und der anschließende Technologie-Wechsel auf `Ndef` für den eigentlichen Schreibvorgang schlägt dann mit "Tag connection lost" fehl - reproduzierbar auf jedem getesteten Tag, unabhängig von Auflegedauer/-festigkeit (bestätigt: der normale Systemscan, der den Tag im Browser öffnet, nutzt einen einzigen einfachen Lesevorgang ohne Technologie-Wechsel und ist davon nicht betroffen). Ein Retry auf demselben Tag-Objekt half nicht (identischer Fehler bei jedem Versuch - das Objekt ist nach dem Vorab-Lesen offenbar dauerhaft ungültig, nicht nur kurz blockiert). Fix in `native.js`/`nativeWriteTag()`: Der `nfcEvent`-Listener bleibt nach einem fehlgeschlagenen Versuch aktiv und wartet auf die nächste Tag-Neuerkennung (liefert ein frisches, unberührtes Tag-Objekt) statt auf demselben Objekt zu wiederholen - bis zu 6 Versuche bzw. 15 Sekunden. Auf echtem Gerät (Samsung Galaxy A55) verifiziert: Schreiben funktioniert jetzt zuverlässig.
+
+**Noch offen:** App-Signierung für ein Release-APK.
 
 ## Grundprinzip
 
