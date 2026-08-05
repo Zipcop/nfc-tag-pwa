@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(SystemTimerPlugin.class);
+        registerPlugin(TagDispatchControlPlugin.class);
         super.onCreate(savedInstanceState);
         handleTagIntent(getIntent());
     }
@@ -27,6 +28,9 @@ public class MainActivity extends BridgeActivity {
     // weiterreichen - so verarbeitet action.js das genau wie beim direkten
     // Öffnen im Browser, ganz ohne eigene native Parsing-Logik.
     private void handleTagIntent(Intent intent) {
+        if (TagDispatchControlPlugin.suppressed) {
+            return; // aktiver Schreib-/Scan-Vorgang läuft gerade, OS-Dispatch ignorieren
+        }
         if (intent == null) {
             return;
         }

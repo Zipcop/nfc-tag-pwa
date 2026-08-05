@@ -63,6 +63,22 @@ async function registerNativePush() {
   });
 }
 
+/* ---------------- Tag-Dispatch-Koordination ----------------
+   Während nativeWriteTag()/nativeScanTagOnce() aktiv auf ein nfcEvent des
+   CapacitorNfc-Plugins warten, kann Androids eigener NFC-Intent-Dispatch
+   (MainActivity.handleTagIntent) denselben Tag-Scan parallel als
+   ACTION_VIEW/NDEF_DISCOVERED an die WebView weiterreichen und ungewollt
+   die im Tag hinterlegte Aktion laden - siehe TagDispatchControlPlugin. */
+
+async function suppressTagDispatch() {
+  const { TagDispatchControl } = nativePlugins();
+  await TagDispatchControl.suppress();
+}
+async function resumeTagDispatch() {
+  const { TagDispatchControl } = nativePlugins();
+  await TagDispatchControl.resume().catch(() => {});
+}
+
 /* ---------------- Natives NFC (@capgo/capacitor-nfc) ----------------
    Liefert/erwartet dieselben Formen wie das Web-NFC-Pendant in app.js
    (scanNfcTagOnce/writeNfcTag/isWebNfcSupported), damit setup.js und
@@ -118,6 +134,7 @@ function nativeScanTagOnce(signal) {
 
     function cleanup() {
       CapacitorNfc.stopScanning().catch(() => {});
+      resumeTagDispatch();
       if (listenerHandle) {
         listenerHandle.remove();
       }
@@ -164,12 +181,14 @@ function nativeScanTagOnce(signal) {
       listenerHandle = handle;
     });
 
-    CapacitorNfc.startScanning().catch((err) => {
-      if (!settled) {
-        settled = true;
-        reject(err);
-      }
-    });
+    suppressTagDispatch()
+      .then(() => CapacitorNfc.startScanning())
+      .catch((err) => {
+        if (!settled) {
+          settled = true;
+          reject(err);
+        }
+      });
   });
 }
 
@@ -204,6 +223,7 @@ function nativeWriteTag(url) {
     function cleanup() {
       clearTimeout(timeoutId);
       CapacitorNfc.stopScanning().catch(() => {});
+      resumeTagDispatch();
       if (listenerHandle) {
         listenerHandle.remove();
       }
@@ -256,8 +276,10 @@ function nativeWriteTag(url) {
       listenerHandle = handle;
     });
 
-    CapacitorNfc.startScanning().catch((err) => {
-      fail(err);
-    });
+    suppressTagDispatch()
+      .then(() => CapacitorNfc.startScanning())
+      .catch((err) => {
+        fail(err);
+      });
   });
 }
