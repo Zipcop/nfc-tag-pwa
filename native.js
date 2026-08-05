@@ -196,7 +196,7 @@ async function registerNativePush() {
         await fetch(`${PUSH_WORKER_URL}/subscribe`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-Api-Key": PUSH_API_KEY },
-          body: JSON.stringify({ fcmToken: token.value }),
+          body: JSON.stringify({ ownerId: getOwnerId(), fcmToken: token.value }),
         });
         resolve(token.value);
       } catch (err) {

@@ -68,7 +68,7 @@ async function handlePushSubscribeClick() {
       await fetch(`${PUSH_WORKER_URL}/subscribe`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Api-Key": PUSH_API_KEY },
-        body: JSON.stringify(subscription),
+        body: JSON.stringify({ ownerId: getOwnerId(), ...subscription.toJSON() }),
       });
     }
 

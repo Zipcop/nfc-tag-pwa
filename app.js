@@ -54,6 +54,23 @@ function randomId(prefix) {
   return prefix ? `${prefix}-${rand}` : rand;
 }
 
+/* Pro Installation einmalig erzeugte, zufällige ID (kein Personenbezug) -
+   wird in jeden geschriebenen Tag eingebettet, damit eine Benachrichtigung
+   beim Scannen gezielt nur an das Handy geht, das den Tag ursprünglich
+   angelegt hat, statt an die eine zuletzt registrierte Subscription im
+   Worker (das führte dazu, dass ein zweites installiertes Testgerät die
+   Benachrichtigungen des Erst-Geräts abgefangen hat). */
+const OWNER_ID_KEY = "nfcOwnerId";
+
+function getOwnerId() {
+  let id = localStorage.getItem(OWNER_ID_KEY);
+  if (!id) {
+    id = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : randomId("owner");
+    localStorage.setItem(OWNER_ID_KEY, id);
+  }
+  return id;
+}
+
 const TYPE_META = {
   timer: { icon: "clock", label: "Timer" },
   contact: { icon: "contact", label: "Kontakt" },
@@ -114,6 +131,7 @@ const NATIVE_TAG_SCHEME = "nfcaktionen";
 function buildTagUrl(config) {
   const params = new URLSearchParams();
   params.set("type", config.type);
+  params.set("owner", getOwnerId());
 
   if (config.type === "timer") {
     params.set("min", String(config.minutes));
@@ -176,12 +194,18 @@ function isSafeRedirectUrl(url) {
    sendNotification(title, body).
    ========================================================= */
 
-async function sendNotification(title, body) {
+async function sendNotification(ownerId, title, body) {
+  // Tags ohne Owner-ID (vor diesem Update geschrieben) können nicht mehr
+  // zugestellt werden - müssen einmalig neu beschrieben werden.
+  if (!ownerId) {
+    console.warn("Benachrichtigung übersprungen: Tag hat keine Owner-ID (vor diesem Update geschrieben).");
+    return;
+  }
   try {
     await fetch(`${PUSH_WORKER_URL}/notify`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Api-Key": PUSH_API_KEY },
-      body: JSON.stringify({ title, body }),
+      body: JSON.stringify({ ownerId, title, body }),
     });
   } catch (err) {
     console.warn("Benachrichtigung konnte nicht gesendet werden:", err);

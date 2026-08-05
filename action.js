@@ -195,7 +195,7 @@ function initContactAction(params) {
   `;
 
   if (notify) {
-    sendNotification("NFC Aktionen", `Tag gescannt: ${name || "Kontakt-Tag"}`);
+    sendNotification(params.get("owner"), "NFC Aktionen", `Tag gescannt: ${name || "Kontakt-Tag"}`);
   }
 }
 
@@ -213,7 +213,7 @@ function initCheckinAction(params) {
     </div>
   `;
 
-  sendNotification(name || "Check-in", msg || `${name || "Jemand"} ist angekommen.`);
+  sendNotification(params.get("owner"), name || "Check-in", msg || `${name || "Jemand"} ist angekommen.`);
 }
 
 /* ---------------- Navigation/Route ---------------- */
