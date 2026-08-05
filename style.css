@@ -21,6 +21,7 @@
   --danger-bg: #F3DCD6;
   --fog: #8B909B;
   --line: #262B33;
+  --text: #F1ECE0;
   --button-text: #241202;
   --font-scale: 1;
   --radius-card: 18px;
@@ -54,10 +55,19 @@ body {
   min-height: 100vh;
 }
 
+/* Fließtext, der direkt auf --bg liegt (Seitenhintergrund), braucht --text
+   statt --ink - --ink ist nur für Text auf --card (helle Karten/Modals/
+   Formulare) gedacht und je nach Theme nicht zwangsläufig hell genug für
+   den (ggf. dunklen) Seitenhintergrund. */
 h1, h2 {
   font-family: "Space Grotesk", sans-serif;
-  color: #F1ECE0;
+  color: var(--text);
   margin: 0 0 4px;
+}
+
+.surface-card h1, .surface-card h2,
+.modal h1, .modal h2 {
+  color: var(--ink);
 }
 
 h1 {
@@ -105,7 +115,7 @@ mono, .mono {
 .brand-mark {
   width: 30px;
   height: 18px;
-  color: #F1ECE0;
+  color: var(--text);
   flex-shrink: 0;
 }
 
@@ -171,7 +181,7 @@ button:disabled {
 
 .btn-outline {
   background: transparent;
-  color: #F1ECE0;
+  color: var(--text);
   border: 1.5px solid var(--line);
 }
 
@@ -429,7 +439,7 @@ button:disabled {
   font-family: "Space Grotesk", sans-serif;
   font-weight: 500;
   font-size: 1.1rem;
-  color: #F1ECE0;
+  color: var(--text);
 }
 
 .pin-card {

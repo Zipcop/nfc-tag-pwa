@@ -99,8 +99,11 @@ function buildThemeFromColor(primaryHex) {
   const line = hslToHex(h, Math.min(s, 15), 18);
   const amberBg = hslToHex(h, Math.min(s * 0.5, 35), 90);
   const tealBg = hslToHex(h2, Math.min(s * 0.5, 35), 90);
+  // Text direkt auf bg (nicht auf card wie ink) - hell auf dunklem bg,
+  // dunkel auf hellem bg, automatisch übers Kontrast-Ziel geregelt.
+  const text = ensureContrast(h, Math.min(s, 10), 92, bg, "darker");
 
-  return { bg, card, ink, amber, amberBg, teal, tealBg, fog, line, buttonText: pickReadableText(amber) };
+  return { bg, card, ink, text, amber, amberBg, teal, tealBg, fog, line, buttonText: pickReadableText(amber) };
 }
 
 /* ---------------- Presets ---------------- */
@@ -110,6 +113,7 @@ const THEME_PRESETS = {
     bg: "#14171C",
     card: "#F6F1E7",
     ink: "#211D18",
+    text: "#F1ECE0",
     amber: "#E8873D",
     amberBg: "#F7E4D0",
     teal: "#3F7368",
@@ -121,6 +125,7 @@ const THEME_PRESETS = {
     bg: "#F3EFE6",
     card: "#FFFFFF",
     ink: "#211D18",
+    text: "#211D18",
     amber: "#C96A1F",
     amberBg: "#FCE7D2",
     teal: "#2F5D54",
@@ -132,6 +137,7 @@ const THEME_PRESETS = {
     bg: "#000000",
     card: "#FFFFFF",
     ink: "#000000",
+    text: "#FFFFFF",
     amber: "#FF8C00",
     amberBg: "#FFFFFF",
     teal: "#00897B",
@@ -170,6 +176,7 @@ function applyThemeVars(vars) {
   root.setProperty("--bg", vars.bg);
   root.setProperty("--card", vars.card);
   root.setProperty("--ink", vars.ink);
+  root.setProperty("--text", vars.text);
   root.setProperty("--amber", vars.amber);
   root.setProperty("--amber-bg", vars.amberBg);
   root.setProperty("--teal", vars.teal);
