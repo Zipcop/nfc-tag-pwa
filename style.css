@@ -21,9 +21,11 @@
   --danger-bg: #F3DCD6;
   --fog: #8B909B;
   --line: #262B33;
+  --button-text: #241202;
+  --font-scale: 1;
   --radius-card: 18px;
   --radius-btn: 16px;
-  font-size: 17px;
+  font-size: calc(17px * var(--font-scale));
 }
 
 * {
@@ -159,7 +161,7 @@ button:disabled {
 
 .btn-primary {
   background: var(--amber);
-  color: #241202;
+  color: var(--button-text);
 }
 
 .btn-secondary {
@@ -966,6 +968,95 @@ textarea {
   color: var(--danger);
   font-family: "Inter", sans-serif;
   font-weight: 500;
+}
+
+/* ---------------- Design-Einstellungen (Theme + Schriftgröße) ---------------- */
+
+.theme-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 14px 0 18px;
+}
+
+.theme-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  min-height: 0;
+  padding: 14px 10px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: var(--tile-bg, var(--card));
+  cursor: pointer;
+}
+
+.theme-tile:active {
+  transform: none;
+}
+
+.theme-tile-active {
+  border-color: var(--tile-accent, var(--amber));
+}
+
+.theme-tile-swatch {
+  display: flex;
+  gap: 6px;
+}
+
+.theme-tile-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.theme-tile-label {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--tile-ink, var(--ink));
+  text-align: center;
+}
+
+#custom-color-panel {
+  margin-bottom: 20px;
+}
+
+#custom-color-input {
+  width: 100%;
+  height: 48px;
+  padding: 4px;
+  border: 1.5px solid rgba(33, 29, 24, 0.14);
+  border-radius: 10px;
+  background: #FFFFFF;
+  margin-bottom: 14px;
+}
+
+.theme-preview-card {
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.theme-preview-card .btn {
+  margin-top: 12px;
+}
+
+.font-scale-row {
+  display: flex;
+  gap: 8px;
+}
+
+.font-scale-btn {
+  background: var(--card);
+  color: var(--ink);
+  border: 2px solid transparent;
+}
+
+.font-scale-active {
+  border-color: var(--amber);
 }
 
 .page-footer {

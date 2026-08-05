@@ -60,6 +60,9 @@ const ICONS = {
 
   backspace:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-6-6 6-6z"/><path d="M13 10l4 4M17 10l-4 4"/></svg>',
+
+  palette:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5a8.5 8 0 0 0 0 16c1.1 0 2-.8 2-1.9 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7h1.8a4.5 4 0 0 0 4.5-4c0-4-4.5-6-9-6z"/><circle cx="8.2" cy="10.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor" stroke="none"/><circle cx="15.8" cy="10.5" r="1.1" fill="currentColor" stroke="none"/></svg>',
 };
 
 /* Füllt alle Elemente mit [data-icon="name"] mit dem passenden SVG.

@@ -9,6 +9,13 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#14171C">
 <link rel="stylesheet" href="style.css">
+<script src="theme-generator.js"></script>
+<script>
+  // Ganz früh im <head> anwenden, bevor irgendetwas gerendert wird -
+  // verhindert ein kurzes Aufblitzen der Standardfarben/-schriftgröße.
+  applyStoredTheme();
+  applyStoredFontScale();
+</script>
 </head>
 <body>
 <div class="app">
@@ -47,6 +54,11 @@
       <button type="button" id="tag-info-btn" class="btn btn-outline btn-block">
         <span class="icon" data-icon="info"></span>
         Tag-Infos anzeigen
+      </button>
+
+      <button type="button" id="theme-settings-btn" class="btn btn-outline btn-block">
+        <span class="icon" data-icon="palette"></span>
+        Design
       </button>
 
       <button type="button" id="push-subscribe-btn" class="btn btn-outline btn-block" hidden>
@@ -95,6 +107,7 @@
       initActionView(params);
     } else {
       document.getElementById("tag-info-btn").addEventListener("click", openTagInfoModal);
+      document.getElementById("theme-settings-btn").addEventListener("click", openThemeSettingsModal);
       initLockGate();
     }
     registerServiceWorker();

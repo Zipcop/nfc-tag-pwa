@@ -18,6 +18,7 @@ const FILES = [
   "setup.html",
   "style.css",
   "icons.js",
+  "theme-generator.js",
   "native.js",
   "app.js",
   "dashboard.js",

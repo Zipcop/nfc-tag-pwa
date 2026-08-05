@@ -1,10 +1,11 @@
-const CACHE_NAME = "nfc-aktionen-v9";
+const CACHE_NAME = "nfc-aktionen-v10";
 const PRECACHE_URLS = [
   "./",
   "./index.html",
   "./setup.html",
   "./style.css",
   "./icons.js",
+  "./theme-generator.js",
   "./native.js",
   "./app.js",
   "./dashboard.js",
