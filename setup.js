@@ -31,6 +31,18 @@ function initSetup() {
     mode = "create";
   }
 
+  // "create"/"rewrite" fassen den physischen Tag an (Scan und/oder Schreiben) -
+  // solange dieser Screen offen ist, soll ein Tag-Kontakt ausschließlich vom
+  // gezielten Scan/Schreib-Vorgang hier ausgewertet werden, nicht zusätzlich
+  // von Androids normalem NFC-Intent-Dispatch (siehe native.js). "edit" fasst
+  // den Tag nie an und braucht das nicht. resumeTagDispatch() läuft über
+  // pagehide statt an einzelnen Buttons, damit jeder Weg von diesem Screen
+  // weg (Zurück-Link, Abbrechen, erfolgreicher Abschluss) abgedeckt ist.
+  if (mode !== "edit" && isNativePlatform()) {
+    suppressTagDispatch();
+    window.addEventListener("pagehide", () => resumeTagDispatch(), { once: true });
+  }
+
   if (mode === "edit") {
     document.getElementById("page-title").textContent = "Tag bearbeiten";
     renderEditForm();

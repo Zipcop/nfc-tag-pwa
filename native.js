@@ -64,11 +64,18 @@ async function registerNativePush() {
 }
 
 /* ---------------- Tag-Dispatch-Koordination ----------------
-   Während nativeWriteTag()/nativeScanTagOnce() aktiv auf ein nfcEvent des
-   CapacitorNfc-Plugins warten, kann Androids eigener NFC-Intent-Dispatch
-   (MainActivity.handleTagIntent) denselben Tag-Scan parallel als
-   ACTION_VIEW/NDEF_DISCOVERED an die WebView weiterreichen und ungewollt
-   die im Tag hinterlegte Aktion laden - siehe TagDispatchControlPlugin. */
+   Solange die Nutzerin einen Tag bewusst zum Lesen/Schreiben ans Handy
+   hält (Setup-Screen offen, Tag-Infos-Modal offen), kann Androids eigener
+   NFC-Intent-Dispatch (MainActivity.handleTagIntent) denselben Tag-Scan
+   parallel als ACTION_VIEW/NDEF_DISCOVERED an die WebView weiterreichen
+   und ungewollt die im Tag hinterlegte Aktion laden - siehe
+   TagDispatchControlPlugin. suppressTagDispatch()/resumeTagDispatch()
+   werden deshalb NICHT hier um die kurzen nativeWriteTag()/
+   nativeScanTagOnce()-Aufrufe herum aufgerufen (das Fenster wäre zu kurz -
+   z.B. während des Formular-Ausfüllens zwischen Scan und Schreiben bleibt
+   der Tag oft weiter am Handy), sondern vom jeweiligen Aufrufer für die
+   gesamte Dauer der bewussten NFC-Interaktion (siehe setup.js/initSetup()
+   und nfc-tools.js/openTagInfoModal()+closeModal()). */
 
 async function suppressTagDispatch() {
   const { TagDispatchControl } = nativePlugins();
@@ -134,7 +141,6 @@ function nativeScanTagOnce(signal) {
 
     function cleanup() {
       CapacitorNfc.stopScanning().catch(() => {});
-      resumeTagDispatch();
       if (listenerHandle) {
         listenerHandle.remove();
       }
@@ -181,14 +187,12 @@ function nativeScanTagOnce(signal) {
       listenerHandle = handle;
     });
 
-    suppressTagDispatch()
-      .then(() => CapacitorNfc.startScanning())
-      .catch((err) => {
-        if (!settled) {
-          settled = true;
-          reject(err);
-        }
-      });
+    CapacitorNfc.startScanning().catch((err) => {
+      if (!settled) {
+        settled = true;
+        reject(err);
+      }
+    });
   });
 }
 
@@ -223,7 +227,6 @@ function nativeWriteTag(url) {
     function cleanup() {
       clearTimeout(timeoutId);
       CapacitorNfc.stopScanning().catch(() => {});
-      resumeTagDispatch();
       if (listenerHandle) {
         listenerHandle.remove();
       }
@@ -276,10 +279,8 @@ function nativeWriteTag(url) {
       listenerHandle = handle;
     });
 
-    suppressTagDispatch()
-      .then(() => CapacitorNfc.startScanning())
-      .catch((err) => {
-        fail(err);
-      });
+    CapacitorNfc.startScanning().catch((err) => {
+      fail(err);
+    });
   });
 }
