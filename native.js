@@ -311,74 +311,82 @@ function nativeScanTagOnce(signal) {
 }
 
 /* write() im Plugin schreibt auf "das zuletzt erkannte Tag" (eine intern
-   gecachte Referenz). Wird write() aufgerufen, ohne vorher auf eine FRISCHE
-   Tag-Erkennung in dieser Sitzung zu warten, kann diese Referenz noch von
-   einer früheren Scan-Sitzung stammen (z.B. "Tag-Infos anzeigen" davor) -
-   das native Tag-Objekt ist dann bereits ungültig und write() schlägt mit
-   "Tag connection lost" (IllegalStateException) fehl, obwohl der aktuell
-   aufgelegte Tag nie tatsächlich angesprochen wurde. Deshalb: immer erst
-   auf ein frisches nfcEvent warten, dann erst schreiben.
-
-   Zusätzlich liest das Plugin bei JEDER Tag-Erkennung zuerst den
-   vorhandenen NDEF-Inhalt (u.a. seitenweise über MifareUltralight, bevor
-   überhaupt das nfcEvent feuert) - bei Tags mit bereits vorhandenem
-   Inhalt (z.B. von früheren Testschreibvorgängen) dauert das spürbar
-   länger und kollidiert dabei gelegentlich mit dem alle 100ms laufenden
-   Presence-Check des Reader-Mode, was genau dieses "Tag connection lost"
-   auslöst - unabhängig von Auflegedauer/-festigkeit. Da der physische Tag
-   dabei nie wirklich außer Reichweite war, reicht ein kurzer erneuter
-   write()-Versuch auf demselben Tag-Objekt, ohne neu aufzulegen. */
-const WRITE_RETRY_ATTEMPTS = 3;
-const WRITE_RETRY_DELAY_MS = 250;
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+   gecachte Referenz), die bei jedem nfcEvent neu gesetzt wird. Das Plugin
+   liest dabei VOR dem nfcEvent immer erst den vorhandenen NDEF-Inhalt
+   (u.a. seitenweise über MifareUltralight) - bei Tags mit bereits
+   vorhandenem Inhalt (z.B. von früheren Testschreibvorgängen) dauert das
+   spürbar länger, und der anschließende Verbindungswechsel auf die
+   Ndef-Technologie für den eigentlichen Schreibvorgang schlägt dann mit
+   "Tag connection lost" fehl - reproduzierbar bei JEDEM Versuch auf
+   demselben Tag-Objekt, ein erneuter write()-Aufruf auf genau diesem
+   Objekt bringt also nichts (bereits getestet, gleicher Fehler jedes
+   Mal). Stattdessen: Listener nach einem fehlgeschlagenen Versuch NICHT
+   entfernen, sondern auf das nächste nfcEvent warten - selbst bei
+   "festem" Auflegen erzeugt minimales Zittern der Hand meist erneute
+   Erkennungen, die dann ein frisches, noch unberührtes Tag-Objekt
+   liefern. Nach WRITE_MAX_ATTEMPTS Versuchen bzw. WRITE_TIMEOUT_MS wird
+   endgültig aufgegeben. */
+const WRITE_MAX_ATTEMPTS = 6;
+const WRITE_TIMEOUT_MS = 15000;
 
 function nativeWriteTag(url) {
   const { CapacitorNfc } = nativePlugins();
   return new Promise((resolve, reject) => {
     let listenerHandle = null;
     let settled = false;
+    let writing = false;
+    let attempts = 0;
+    let timeoutId = null;
 
     function cleanup() {
+      clearTimeout(timeoutId);
       CapacitorNfc.stopScanning().catch(() => {});
       if (listenerHandle) {
         listenerHandle.remove();
       }
     }
 
-    async function writeWithRetry() {
-      const record = buildNdefUriRecord(url);
-      let lastErr;
-      for (let attempt = 1; attempt <= WRITE_RETRY_ATTEMPTS; attempt++) {
-        try {
-          await CapacitorNfc.write({ records: [record] });
-          return;
-        } catch (err) {
-          lastErr = err;
-          if (attempt < WRITE_RETRY_ATTEMPTS) {
-            await delay(WRITE_RETRY_DELAY_MS);
-          }
-        }
+    function fail(err) {
+      if (settled) {
+        return;
       }
-      throw lastErr;
+      settled = true;
+      cleanup();
+      reject(err);
     }
+
+    function succeed() {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      resolve();
+    }
+
+    timeoutId = setTimeout(() => {
+      fail(new Error("Zeitüberschreitung beim Schreiben. Tag bitte kurz abheben und erneut auflegen."));
+    }, WRITE_TIMEOUT_MS);
+
+    const record = buildNdefUriRecord(url);
 
     Promise.resolve(
       CapacitorNfc.addListener("nfcEvent", () => {
-        if (settled) {
+        if (settled || writing) {
           return;
         }
-        settled = true;
-        writeWithRetry()
+        writing = true;
+        attempts++;
+        CapacitorNfc.write({ records: [record] })
           .then(() => {
-            cleanup();
-            resolve();
+            succeed();
           })
           .catch((err) => {
-            cleanup();
-            reject(err);
+            writing = false;
+            if (attempts >= WRITE_MAX_ATTEMPTS) {
+              fail(err);
+            }
+            // sonst: weiter auf das nächste nfcEvent warten (frisches Tag-Objekt)
           });
       })
     ).then((handle) => {
@@ -386,10 +394,7 @@ function nativeWriteTag(url) {
     });
 
     CapacitorNfc.startScanning().catch((err) => {
-      if (!settled) {
-        settled = true;
-        reject(err);
-      }
+      fail(err);
     });
   });
 }
