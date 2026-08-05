@@ -46,11 +46,15 @@ async function registerNativePush() {
   return new Promise((resolve, reject) => {
     PushNotifications.addListener("registration", async (token) => {
       try {
-        await fetch(`${PUSH_WORKER_URL}/subscribe`, {
+        const res = await fetch(`${PUSH_WORKER_URL}/subscribe`, {
           method: "POST",
           headers: { "Content-Type": "application/json", "X-Api-Key": PUSH_API_KEY },
           body: JSON.stringify({ ownerId: getOwnerId(), fcmToken: token.value }),
         });
+        if (!res.ok) {
+          reject(new Error(`Registrierung beim Server fehlgeschlagen: ${res.status} ${await res.text()}`));
+          return;
+        }
         resolve(token.value);
       } catch (err) {
         reject(err);
