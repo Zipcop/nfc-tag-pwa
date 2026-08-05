@@ -8,7 +8,11 @@
    verborgen bleibt.
    ========================================================= */
 
-const PUSH_SUBSCRIBED_KEY = "nfcPushSubscribed";
+// v2: Umstellung auf Owner-ID-gescopte Subscriptions im Worker (siehe
+// app.js: getOwnerId()) - unter dem alten Schlüssel bereits als "registriert"
+// markierte Installationen haben serverseitig keine gültige Subscription
+// mehr und müssen sich einmalig neu registrieren, daher neuer Key-Name.
+const PUSH_SUBSCRIBED_KEY = "nfcPushSubscribedV2";
 let pushListenerAttached = false;
 
 function isPushSupported() {
