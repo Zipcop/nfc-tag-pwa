@@ -202,11 +202,14 @@ async function sendNotification(ownerId, title, body) {
     return;
   }
   try {
-    await fetch(`${PUSH_WORKER_URL}/notify`, {
+    const res = await fetch(`${PUSH_WORKER_URL}/notify`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Api-Key": PUSH_API_KEY },
       body: JSON.stringify({ ownerId, title, body }),
     });
+    if (!res.ok) {
+      console.warn("Benachrichtigung fehlgeschlagen:", res.status, await res.text());
+    }
   } catch (err) {
     console.warn("Benachrichtigung konnte nicht gesendet werden:", err);
   }
