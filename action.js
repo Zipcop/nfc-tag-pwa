@@ -81,9 +81,10 @@ async function initTimerAction(params) {
   startCountdown(seconds, label);
 }
 
-/* Native Capacitor-App: zuverlässiger System-Alarm über LocalNotifications
-   statt In-Page-Countdown - läuft auch bei geschlossener App weiter und ist
-   im Dashboard unter "Laufende Timer" abbrechbar (siehe native.js). */
+/* Native Capacitor-App: Timer wird an die installierte Uhr-App übergeben
+   (SystemTimerPlugin, siehe native.js/startSystemTimer() und
+   MainActivity.java) statt In-Page-Countdown - läuft dort mit eigenem
+   Countdown/Sound/Vibration weiter, auch wenn diese App geschlossen wird. */
 async function initNativeTimerAction(seconds, label, content) {
   content.innerHTML = `
     <div class="sticker-card type-timer action-card">
@@ -94,17 +95,16 @@ async function initNativeTimerAction(seconds, label, content) {
   `;
 
   try {
-    await startNativeTimer(seconds, label);
+    await startSystemTimer(seconds, label);
     content.innerHTML = `
       <div class="sticker-card type-timer action-card">
         <span class="action-icon">${ICONS.clock}</span>
         <h1>${escapeForDisplay(label)}</h1>
         <div class="banner banner-success">
           <span class="icon">${ICONS.check}</span>
-          <span>Timer gestellt - läuft auch weiter, wenn du die App schließt.</span>
+          <span>Timer läuft jetzt in deiner Uhr-App.</span>
         </div>
         <a href="index.html" class="btn btn-primary btn-block">Zur Übersicht</a>
-        <p class="field-hint">Im Dashboard unter „Laufende Timer" jederzeit abbrechbar.</p>
       </div>
     `;
   } catch (err) {

@@ -79,6 +79,16 @@ async function startNativeTimer(seconds, label) {
   return { id, fireAt };
 }
 
+/* Übergibt den Timer an die installierte Uhr-App (SystemTimerPlugin,
+   siehe MainActivity.java) statt einen eigenen LocalNotifications-Alarm
+   zu stellen - läuft dadurch mit deren eigenem Countdown/Sound/Vibration.
+   Trade-off: kein Abbrechen mehr über das eigene Dashboard möglich, nur
+   noch über die Uhr-App selbst. */
+async function startSystemTimer(seconds, label) {
+  const { SystemTimer } = nativePlugins();
+  await SystemTimer.startTimer({ seconds, label });
+}
+
 async function cancelNativeTimer(id) {
   const { LocalNotifications } = nativePlugins();
   try {
