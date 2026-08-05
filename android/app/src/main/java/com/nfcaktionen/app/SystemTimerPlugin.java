@@ -34,7 +34,8 @@ public class SystemTimerPlugin extends Plugin {
             getContext().startActivity(intent);
             call.resolve();
         } catch (Exception e) {
-            call.reject("Keine Uhr-App gefunden, die Timer unterstützt.", e);
+            android.util.Log.e("SystemTimerPlugin", "startActivity failed", e);
+            call.reject(e.getClass().getSimpleName() + ": " + e.getMessage(), e);
         }
     }
 }
